@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[解决Hexo DTraceProviderBindings MODULE_NOT_FOUND报错]]></title>
+    <url>%2F2018%2F01%2F16%2F%E8%A7%A3%E5%86%B3Hexo-DTraceProviderBindings-MODULE-NOT-FOUND%E6%8A%A5%E9%94%99%2F</url>
+    <content type="text"><![CDATA[问题描述：当我们在执行hexo 命令的时候有时会出现如下报错，这是因为hexo没有安装dtrace-prodider 模块，而提示没有找到错误。但是hexo命令任然可以正常执行。 hexo报错信息 123&#123; [Error: Cannot find module './build/Release/DTraceProviderBindings'] code: 'MODULE_NOT_FOUND' &#125;&#123; [Error: Cannot find module './build/default/DTraceProviderBindings'] code: 'MODULE_NOT_FOUND' &#125;&#123; [Error: Cannot find module './build/Debug/DTraceProviderBindings'] code: 'MODULE_NOT_FOUND' &#125; 解决方法：可以通过重新安装hexo-cli来解决此问题： 安装命令： 12345//1. 卸载hexo-cli $ sudo npm uninstall hexo-cli -g//2. 安装hexo-cli ，注意：这里必须用管理员权限安装，否则会报错。$ sudo npm install hexo-cli -g]]></content>
+      <tags>
+        <tag>hexo</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[testblog]]></title>
     <url>%2F2017%2F06%2F01%2Ftestblog%2F</url>
     <content type="text"><![CDATA[this is a test file for my own blog based on github page powerd by Hexo 这里是中文字体的测试 1234// 这是一段代码int a = 1;int b = 2;int result = a+b;]]></content>
