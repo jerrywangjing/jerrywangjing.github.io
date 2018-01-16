@@ -105,18 +105,18 @@
 
 
 
-<meta name="description" content="问题描述：当我们在执行hexo 命令的时候有时会出现如下报错，这是因为hexo没有安装dtrace-prodider 模块，而提示没有找到错误。但是hexo命令任然可以正常执行。   hexo报错信息  123&amp;#123; [Error: Cannot find module &apos;./build/Release/DTraceProviderBindings&apos;] code: &apos;MODULE_NOT_F">
+<meta name="description" content="问题描述：当我们在执行hexo 命令的时候有时会出现如下报错，这是因为hexo没有安装dtrace-prodider 模块导致的错误提示。但是hexo命令任然可以正常执行。可通过下面方法来屏蔽此报错信息。   hexo报错信息  123&amp;#123; [Error: Cannot find module &apos;./build/Release/DTraceProviderBindings&apos;] code:">
 <meta name="keywords" content="hexo">
 <meta property="og:type" content="article">
 <meta property="og:title" content="解决Hexo DTraceProviderBindings MODULE_NOT_FOUND报错">
 <meta property="og:url" content="http://yoursite.com/2018/01/16/解决Hexo-DTraceProviderBindings-MODULE-NOT-FOUND报错/index.html">
 <meta property="og:site_name" content="Jerry&#39;s Blog">
-<meta property="og:description" content="问题描述：当我们在执行hexo 命令的时候有时会出现如下报错，这是因为hexo没有安装dtrace-prodider 模块，而提示没有找到错误。但是hexo命令任然可以正常执行。   hexo报错信息  123&amp;#123; [Error: Cannot find module &apos;./build/Release/DTraceProviderBindings&apos;] code: &apos;MODULE_NOT_F">
+<meta property="og:description" content="问题描述：当我们在执行hexo 命令的时候有时会出现如下报错，这是因为hexo没有安装dtrace-prodider 模块导致的错误提示。但是hexo命令任然可以正常执行。可通过下面方法来屏蔽此报错信息。   hexo报错信息  123&amp;#123; [Error: Cannot find module &apos;./build/Release/DTraceProviderBindings&apos;] code:">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-01-16T10:14:23.000Z">
+<meta property="og:updated_time" content="2018-01-16T10:17:55.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="解决Hexo DTraceProviderBindings MODULE_NOT_FOUND报错">
-<meta name="twitter:description" content="问题描述：当我们在执行hexo 命令的时候有时会出现如下报错，这是因为hexo没有安装dtrace-prodider 模块，而提示没有找到错误。但是hexo命令任然可以正常执行。   hexo报错信息  123&amp;#123; [Error: Cannot find module &apos;./build/Release/DTraceProviderBindings&apos;] code: &apos;MODULE_NOT_F">
+<meta name="twitter:description" content="问题描述：当我们在执行hexo 命令的时候有时会出现如下报错，这是因为hexo没有安装dtrace-prodider 模块导致的错误提示。但是hexo命令任然可以正常执行。可通过下面方法来屏蔽此报错信息。   hexo报错信息  123&amp;#123; [Error: Cannot find module &apos;./build/Release/DTraceProviderBindings&apos;] code:">
 
 
 
@@ -388,14 +388,14 @@
       
 
       
-        <h4 id="问题描述："><a href="#问题描述：" class="headerlink" title="问题描述："></a>问题描述：</h4><p>当我们在执行hexo 命令的时候有时会出现如下报错，这是因为hexo没有安装dtrace-prodider 模块，而提示没有找到错误。但是hexo命令任然可以正常执行。</p>
+        <h3 id="问题描述："><a href="#问题描述：" class="headerlink" title="问题描述："></a>问题描述：</h3><p>当我们在执行hexo 命令的时候有时会出现如下报错，这是因为hexo没有安装dtrace-prodider 模块导致的错误提示。但是hexo命令任然可以正常执行。可通过下面方法来屏蔽此报错信息。</p>
 <blockquote>
 <p> hexo报错信息</p>
 </blockquote>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&#123; [<span class="built_in">Error</span>: Cannot find <span class="built_in">module</span> <span class="string">'./build/Release/DTraceProviderBindings'</span>] code: <span class="string">'MODULE_NOT_FOUND'</span> &#125;</div><div class="line">&#123; [<span class="built_in">Error</span>: Cannot find <span class="built_in">module</span> <span class="string">'./build/default/DTraceProviderBindings'</span>] code: <span class="string">'MODULE_NOT_FOUND'</span> &#125;</div><div class="line">&#123; [<span class="built_in">Error</span>: Cannot find <span class="built_in">module</span> <span class="string">'./build/Debug/DTraceProviderBindings'</span>] code: <span class="string">'MODULE_NOT_FOUND'</span> &#125;</div></pre></td></tr></table></figure>
-<h4 id="解决方法："><a href="#解决方法：" class="headerlink" title="解决方法："></a>解决方法：</h4><p>可以通过重新安装<code>hexo-cli</code>来解决此问题：</p>
+<h3 id="解决方法："><a href="#解决方法：" class="headerlink" title="解决方法："></a>解决方法：</h3><p>可以通过重新安装<code>hexo-cli</code>来解决此问题：</p>
 <p>安装命令：</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//1. 卸载hexo-cli </span></div><div class="line">$ sudo npm uninstall hexo-cli -g</div><div class="line"></div><div class="line"><span class="comment">//2. 安装hexo-cli ，注意：这里必须用管理员权限安装，否则会报错。</span></div><div class="line">$ sudo npm install hexo-cli -g</div></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">//1. 卸载hexo-cli </div><div class="line"><span class="meta">$</span> sudo npm uninstall hexo-cli -g</div><div class="line"></div><div class="line">//2. 安装hexo-cli ，注意：这里必须用管理员权限安装，否则会报错。</div><div class="line"><span class="meta">$</span> sudo npm install hexo-cli -g</div></pre></td></tr></table></figure>
 
       
     </div>
@@ -613,7 +613,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#问题描述："><span class="nav-number">1.</span> <span class="nav-text">问题描述：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#解决方法："><span class="nav-number">2.</span> <span class="nav-text">解决方法：</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#问题描述："><span class="nav-number">1.</span> <span class="nav-text">问题描述：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解决方法："><span class="nav-number">2.</span> <span class="nav-text">解决方法：</span></a></li></ol></div>
             
 
           </div>

@@ -3,7 +3,7 @@
   <entry>
     <title><![CDATA[解决Hexo DTraceProviderBindings MODULE_NOT_FOUND报错]]></title>
     <url>%2F2018%2F01%2F16%2F%E8%A7%A3%E5%86%B3Hexo-DTraceProviderBindings-MODULE-NOT-FOUND%E6%8A%A5%E9%94%99%2F</url>
-    <content type="text"><![CDATA[问题描述：当我们在执行hexo 命令的时候有时会出现如下报错，这是因为hexo没有安装dtrace-prodider 模块，而提示没有找到错误。但是hexo命令任然可以正常执行。 hexo报错信息 123&#123; [Error: Cannot find module './build/Release/DTraceProviderBindings'] code: 'MODULE_NOT_FOUND' &#125;&#123; [Error: Cannot find module './build/default/DTraceProviderBindings'] code: 'MODULE_NOT_FOUND' &#125;&#123; [Error: Cannot find module './build/Debug/DTraceProviderBindings'] code: 'MODULE_NOT_FOUND' &#125; 解决方法：可以通过重新安装hexo-cli来解决此问题： 安装命令： 12345//1. 卸载hexo-cli $ sudo npm uninstall hexo-cli -g//2. 安装hexo-cli ，注意：这里必须用管理员权限安装，否则会报错。$ sudo npm install hexo-cli -g]]></content>
+    <content type="text"><![CDATA[问题描述：当我们在执行hexo 命令的时候有时会出现如下报错，这是因为hexo没有安装dtrace-prodider 模块导致的错误提示。但是hexo命令任然可以正常执行。可通过下面方法来屏蔽此报错信息。 hexo报错信息 123&#123; [Error: Cannot find module './build/Release/DTraceProviderBindings'] code: 'MODULE_NOT_FOUND' &#125;&#123; [Error: Cannot find module './build/default/DTraceProviderBindings'] code: 'MODULE_NOT_FOUND' &#125;&#123; [Error: Cannot find module './build/Debug/DTraceProviderBindings'] code: 'MODULE_NOT_FOUND' &#125; 解决方法：可以通过重新安装hexo-cli来解决此问题： 安装命令： 12345//1. 卸载hexo-cli $ sudo npm uninstall hexo-cli -g//2. 安装hexo-cli ，注意：这里必须用管理员权限安装，否则会报错。$ sudo npm install hexo-cli -g]]></content>
       <tags>
         <tag>hexo</tag>
       </tags>
