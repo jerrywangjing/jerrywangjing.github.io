@@ -17,7 +17,7 @@
         
     </title>
 
-    <link rel="canonical" href="https://jerrywang.github.io/2018/01/16/解决Hexo-DTraceProviderBindings-MODULE-NOT-FOUND报错/">
+    <link rel="canonical" href="https://jerrywangjing.github.io/2018/01/16/解决Hexo-DTraceProviderBindings-MODULE-NOT-FOUND报错/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -87,14 +87,14 @@
 
                         
                         <li>
-                            <a href="/about/">关于</a>
+                            <a href="/categories/">categories</a>
                         </li>
                         
                     
 
                         
                         <li>
-                            <a href="/categories/">categories</a>
+                            <a href="/about/">关于</a>
                         </li>
                         
                     
@@ -146,7 +146,7 @@
     <!-- Main Content -->
     
 <!-- Image to hack wechat -->
-<!-- <img src="https://jerrywang.github.io/img/icon_wechat.png" width="0" height="0"> -->
+<!-- <img src="https://jerrywangjing.github.io/img/icon_wechat.png" width="0" height="0"> -->
 <!-- <img src="{{ site.baseurl }}/{% if page.header-img %}{{ page.header-img }}{% else %}{{ site.header-img }}{% endif %}" width="0" height="0"> -->
 
 <!-- Post Header -->
@@ -168,7 +168,7 @@
                     <h1>解决Hexo DTraceProviderBindings MODULE_NOT_FOUND报错</h1>
                     <h2 class="subheading"></h2>
                     <span class="meta">
-                        Posted by Jerry on
+                        Posted by Jerry Wang on
                         2018-01-16
                     </span>
                 </div>
@@ -195,7 +195,7 @@
 <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&#123; [<span class="built_in">Error</span>: Cannot find <span class="built_in">module</span> <span class="string">'./build/Release/DTraceProviderBindings'</span>] code: <span class="string">'MODULE_NOT_FOUND'</span> &#125;</div><div class="line">&#123; [<span class="built_in">Error</span>: Cannot find <span class="built_in">module</span> <span class="string">'./build/default/DTraceProviderBindings'</span>] code: <span class="string">'MODULE_NOT_FOUND'</span> &#125;</div><div class="line">&#123; [<span class="built_in">Error</span>: Cannot find <span class="built_in">module</span> <span class="string">'./build/Debug/DTraceProviderBindings'</span>] code: <span class="string">'MODULE_NOT_FOUND'</span> &#125;</div></pre></td></tr></table></figure>
 <h3 id="解决方法："><a href="#解决方法：" class="headerlink" title="解决方法："></a>解决方法：</h3><p>可以通过重新安装<code>hexo-cli</code>来解决此问题：</p>
 <p>安装命令：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">//1. 卸载hexo-cli </div><div class="line"><span class="meta">$</span><span class="bash"> sudo npm uninstall hexo-cli -g</span></div><div class="line"></div><div class="line">//2. 安装hexo-cli ，注意：这里必须用管理员权限安装，否则会报错。</div><div class="line"><span class="meta">$</span><span class="bash"> sudo npm install hexo-cli -g</span></div></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">//1. 卸载hexo-cli </div><div class="line"><span class="meta">$</span> sudo npm uninstall hexo-cli -g</div><div class="line"></div><div class="line">//2. 安装hexo-cli ，注意：这里必须用管理员权限安装，否则会报错。</div><div class="line"><span class="meta">$</span> sudo npm install hexo-cli -g</div></pre></td></tr></table></figure>
 
 
                 <hr>
@@ -333,7 +333,7 @@
 <script>
     // only load tagcloud.js in tag.html
     if($('#tag_cloud').length !== 0){
-        async("https://jerrywang.github.io/js/jquery.tagcloud.js",function(){
+        async("https://jerrywangjing.github.io/js/jquery.tagcloud.js",function(){
             $.fn.tagcloud.defaults = {
                 //size: {start: 1, end: 1, unit: 'em'},
                 color: {start: '#bbbbee', end: '#0085a1'},
@@ -367,7 +367,7 @@
 
 
 <!-- Image to hack wechat -->
-<img src="https://jerrywang.github.io/img/icon_wechat.png" width="0" height="0" />
+<img src="https://jerrywangjing.github.io/img/icon_wechat.png" width="0" height="0" />
 <!-- Migrate from head to bottom, no longer block render and still work -->
 
 </body>
