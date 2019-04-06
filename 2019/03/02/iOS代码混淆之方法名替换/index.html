@@ -97,14 +97,14 @@
 
                         
                         <li>
-                            <a href="/tags/">Tags</a>
+                            <a href="/archives/">Archives</a>
                         </li>
                         
                     
 
                         
                         <li>
-                            <a href="/archives/">Archives</a>
+                            <a href="/tags/">Tags</a>
                         </li>
                         
                     
@@ -193,7 +193,12 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <h2 id="iOS代码混淆之方法名替换"><a href="#iOS代码混淆之方法名替换" class="headerlink" title="iOS代码混淆之方法名替换"></a>iOS代码混淆之方法名替换</h2><p>在iOS开发中，某些项目为了保护代码安全，不被黑客攻破，通常需要在上架之前对源代码进行加密混淆，下面就介绍一种简单可行的Objective-C代码混淆方案。</p>
+                <blockquote>
+<p>这是iOS代码混淆系列文章的第一篇，后两篇可以点击下方链接查看</p>
+<p><a href="http://wjerry.com/2019/04/05/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E8%B5%84%E6%BA%90%E6%9B%BF%E6%8D%A2/" target="_blank" rel="noopener">iOS代码混淆之资源替换</a></p>
+<p><a href="http://wjerry.com/2019/04/05/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/" target="_blank" rel="noopener">iOS代码混淆之编译优化</a></p>
+</blockquote>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在iOS开发中，某些项目为了保护代码安全，不被黑客攻破，通常需要在上架之前对源代码进行加密混淆，下面就介绍一种简单可行的Objective-C代码混淆方案。</p>
 <h4 id="混淆思路"><a href="#混淆思路" class="headerlink" title="混淆思路"></a>混淆思路</h4><p>由于现在的逆向技术越来越高超，各种破解方案层出不穷，其中就可以使用<code>class-dump</code>命令行工具轻易的dump出<code>demo.app</code>文件中的所有头文件，代码立马回暴露在黑客面前，对项目产生了很多不利因素。因此将代码关键方法进行混淆保护迫在眉睫。</p>
 <p>现有的一种混淆方案就是通过对指定class name 方法名进行MD5加密（显示乱码），然后通过脚本代码将加密的方法名生成到指定的头文件中，然后再使用宏替换的方式将混淆过的方法名在代码预编译阶段进行替换，使方法名即便在<code>class-dump</code>后也只会显示加密后的乱码显示，造成代码不易读，从而实现一定程度上的混淆保护。</p>
 <h4 id="混淆方式"><a href="#混淆方式" class="headerlink" title="混淆方式"></a>混淆方式</h4><p>通过宏定义（#define）的方法名映射，进行字符串替换。这样做的好处在于可以将映射类别规整到一个头文件中，并<code>#import</code> 进项目的<code>prefixHeader.h</code> 预编译头文件中，方便在项目编译时进行全局替换。当不需要混淆的时候，则不导入该头文件即可。</p>
@@ -274,7 +279,7 @@
                 <ul class="pager">
                     
                         <li class="previous">
-                            <a href="/2019/04/05/iOS代码混淆之资源替换/" data-toggle="tooltip" data-placement="top" title="iOS代码混淆之资源替换">&larr; Previous Post</a>
+                            <a href="/2019/03/05/iOS代码混淆之资源替换/" data-toggle="tooltip" data-placement="top" title="iOS代码混淆之资源替换">&larr; Previous Post</a>
                         </li>
                     
                     

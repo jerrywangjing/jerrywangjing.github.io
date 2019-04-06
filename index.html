@@ -97,14 +97,14 @@
 
                         
                         <li>
-                            <a href="/tags/">Tags</a>
+                            <a href="/archives/">Archives</a>
                         </li>
                         
                     
 
                         
                         <li>
-                            <a href="/archives/">Archives</a>
+                            <a href="/tags/">Tags</a>
                         </li>
                         
                     
@@ -184,7 +184,7 @@
 
 <div class="post-preview">
 
-    <a href="/2019/04/05/iOS代码混淆之编译优化/">
+    <a href="/2019/03/10/iOS代码混淆之编译优化/">
         <h2 class="post-title">
             iOS代码混淆之编译优化
         </h2>
@@ -192,12 +192,18 @@
             
         </h3>
         <div class="post-content-preview">
-            ...
+            
+这是iOS代码混淆系列文章的最后一篇，前两篇可以点击下方链接查看
+iOS代码混淆之方法名替换
+iOS代码混淆之资源替换
+
+前言前2篇文章已近讲了对于函数名的混淆，对项目中关键信息、资源文件的修改等相关混淆手段。但是，仅仅做到这几点就能万事大吉吗，黑客仍然可以通过分析代码逻辑或伪装代码来寻找程序漏洞，那么还有其他更坚固可靠的混淆方式呢，接下来就介绍下编译器级别的加固混淆方案。
+iOS编译原理......
         </div>
     </a>
     <p class="post-meta">
         Posted by Jerry on
-        2019-04-05
+        2019-03-10
     </p>
 
 </div>
@@ -205,7 +211,7 @@
 
 <div class="post-preview">
 
-    <a href="/2019/04/05/iOS代码混淆之资源替换/">
+    <a href="/2019/03/05/iOS代码混淆之资源替换/">
         <h2 class="post-title">
             iOS代码混淆之资源替换
         </h2>
@@ -213,15 +219,18 @@
             
         </h3>
         <div class="post-content-preview">
-            iOS代码混淆之资源替换为什么要替换项目资源在某些公司项目开发当中 ，有时候需要通过技术手段，多次上架同一款产品。这些功能类似，且界面不同的产品也称作马甲包。为了达到将同一个包，经过较少的改动，快速更改为另一个类似的产品时，在代码混淆的基础之上还需要修改项目名称、静态资源等来达到目的。
-需替换的资源及注意事项
-工程内部：工程名称、类名前缀、BundleId、icon、启动图、静态资源等
-产品......
+            
+这是iOS代码混淆系列文章的第二篇，其他两篇可以点击下方链接查看
+iOS代码混淆之方法名替换
+iOS代码混淆之编译优化
+
+为什么要替换项目资源在某些公司项目开发当中 ，有时候需要通过技术手段，多次上架同一款产品。这些功能类似，且界面不同的产品也称作马甲包。为了达到将同一个包，经过较少的改动，快速更改为另一个类似的产品时，在代码混淆的基础之上还需要修改项目名称、静态资源等来达到目的。
+需替换......
         </div>
     </a>
     <p class="post-meta">
         Posted by Jerry on
-        2019-04-05
+        2019-03-05
     </p>
 
 </div>
@@ -237,8 +246,13 @@
             
         </h3>
         <div class="post-content-preview">
-            iOS代码混淆之方法名替换在iOS开发中，某些项目为了保护代码安全，不被黑客攻破，通常需要在上架之前对源代码进行加密混淆，下面就介绍一种简单可行的Objective-C代码混淆方案。
-混淆思路由于现在的逆向技术越来越高超，各种破解方案层出不穷，其中就可以使用class-dump命令行工具轻易的dump出demo.app文件中的所有头文件，代码立马回暴露在黑客面前，对项目产生了很多不利因素。因......
+            
+这是iOS代码混淆系列文章的第一篇，后两篇可以点击下方链接查看
+iOS代码混淆之资源替换
+iOS代码混淆之编译优化
+
+前言在iOS开发中，某些项目为了保护代码安全，不被黑客攻破，通常需要在上架之前对源代码进行加密混淆，下面就介绍一种简单可行的Objective-C代码混淆方案。
+混淆思路由于现在的逆向技术越来越高超，各种破解方案层出不穷，其中就可以使用class-dump命令行工具轻易的d......
         </div>
     </a>
     <p class="post-meta">
@@ -268,53 +282,6 @@ LAMP环境。ownCloud需要Web服务器，数据库和P......
     <p class="post-meta">
         Posted by Jerry on
         2018-11-03
-    </p>
-
-</div>
-<hr>
-
-<div class="post-preview">
-
-    <a href="/2018/01/16/解决Hexo-DTraceProviderBindings-MODULE-NOT-FOUND报错/">
-        <h2 class="post-title">
-            解决Hexo DTraceProviderBindings MODULE_NOT_FOUND报错
-        </h2>
-        <h3 class="post-subtitle">
-            
-        </h3>
-        <div class="post-content-preview">
-            问题描述：当我们在执行hexo 命令的时候有时会出现如下报错，这是因为hexo没有安装dtrace-prodider 模块导致的错误提示。但是hexo命令任然可以正常执行。可通过下面方法来屏蔽此报错信息。
-
- hexo报错信息
-
-&#123; [Error: Cannot find module './build/Release/DTraceProviderBindings'] code: ......
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Jerry on
-        2018-01-16
-    </p>
-
-</div>
-<hr>
-
-<div class="post-preview">
-
-    <a href="/2017/01/01/hello-world/">
-        <h2 class="post-title">
-            Hello World
-        </h2>
-        <h3 class="post-subtitle">
-            
-        </h3>
-        <div class="post-content-preview">
-            Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub.
-Qu......
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Jerry on
-        2017-01-01
     </p>
 
 </div>
@@ -355,15 +322,13 @@ Qu......
                             
                         
                             
-                            <a href="/tags/#iOS" title="iOS" rel="2">iOS</a>
+                        
+                            
+                            <a href="/tags/#iOS" title="iOS" rel="3">iOS</a>
                             
                         
                             
-                            <a href="/tags/#代码混淆" title="代码混淆" rel="2">代码混淆</a>
-                            
-                        
-                            
-                            <a href="/tags/#hexo" title="hexo" rel="2">hexo</a>
+                            <a href="/tags/#代码混淆" title="代码混淆" rel="3">代码混淆</a>
                             
                         
                     </div>
