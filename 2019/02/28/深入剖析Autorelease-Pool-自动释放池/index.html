@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A developer">
+    <meta name="keyword"  content="Jerry, wangjing, Jerry&#39;s Blog, 博客, 个人博客, iOS, 移动互联网, 开发">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>
+        
+          深入剖析Autorelease Pool (自动释放池) - Jerry的博客 | Jerry&#39;s Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://jerrywangjing.github.io/2019/02/28/深入剖析Autorelease-Pool-自动释放池/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Jerry&#39;s Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archives/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    
+<!-- Image to hack wechat -->
+<!-- <img src="https://jerrywangjing.github.io/img/icon_wechat.png" width="0" height="0"> -->
+<!-- <img src="{{ site.baseurl }}/{% if page.header-img %}{{ page.header-img }}{% else %}{{ site.header-img }}{% endif %}" width="0" height="0"> -->
+
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        background-image: url('/img/home-bg.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                          <a class="tag" href="/tags/#iOS" title="iOS">iOS</a>
+                        
+                    </div>
+                    <h1>深入剖析Autorelease Pool (自动释放池)</h1>
+                    <h2 class="subheading"></h2>
+                    <span class="meta">
+                        Posted by Jerry on
+                        2019-02-28
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在MRC的内存管理模式下，可以将创建的对象加入自动释放池，程序员则无需手动调用release方法来释放对象，而是当自动释放池销毁的时候会对其中的每一个对象发送release消息，从而达到自动释放的目的。下面我们一步步揭开它的神秘面纱，深度剖析autoreleasepool的实现原理。</p>
+<h3 id="autoreleasepool-实现原理"><a href="#autoreleasepool-实现原理" class="headerlink" title="@autoreleasepool 实现原理"></a>@autoreleasepool 实现原理</h3><p><strong>main.m文件中的@autoreleasepool()</strong></p>
+<p>在iOS代码<code>main.m</code>文件中，我们可以看到<code>@autoreleasepool{}</code>代码块，其中包含的这一行代码将所有事件、消息全部交给了<code>UIApplication</code>来处理。需要注意的是：<strong>整个iOS的应用都是包含在一个自动释放池block中的</strong>。</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line"><span class="comment">// main.m 文件中的内容</span></div><div class="line"><span class="keyword">int</span> main(<span class="keyword">int</span> argc, <span class="keyword">char</span> * argv[]) &#123;</div><div class="line">    <span class="keyword">@autoreleasepool</span> &#123;</div><div class="line">        <span class="keyword">return</span> <span class="built_in">UIApplicationMain</span>(argc, argv, <span class="literal">nil</span>, <span class="built_in">NSStringFromClass</span>([AppDelegate <span class="keyword">class</span>]));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>我们在命令行中使用 <code>clang -rewrite-objc main.m</code> 让编译器重新改写这个文件，可以看到该文件的c++代码实现细节，关键代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line">...</div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">const</span> <span class="keyword">char</span> * argv[])</span></span>&#123;</div><div class="line">    <span class="comment">/* @autoreleasepool */</span> &#123; __AtAutoreleasepool __autoreleasepool;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div><div class="line">...</div></pre></td></tr></table></figure>
+<p>通过分析上述代码，可以看到 <code>{__AtAutoreleasepool __autoreleasepool;}</code> 这段代码即是<code>@atuoreleasepool</code>的c++实现，通过创建一个<code>__autoreleasepool</code>对象来管理其他对象的自动释放操作。</p>
+<p><strong>分析<code>__AtAutoreleasepool</code> 结构体</strong></p>
+<p>我们在main.cpp文件中，定位到了其结构体的定义：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line">...</div><div class="line"><span class="class"><span class="keyword">struct</span> __<span class="title">AtAutoreleasepool</span> &#123;</span></div><div class="line">	__AtAutoreleasepool() &#123; atautoreleasepoolobj = objc_autoreleasePoolPush();&#125;</div><div class="line">    ~__AtAutoreleasepool() &#123; objc_autoreleasePoolPop(atautoreleasepoolpbj);&#125;</div><div class="line">    <span class="keyword">void</span> * atautoreleasepoolobj;</div><div class="line">&#125;</div><div class="line">...</div><div class="line">    </div><div class="line"><span class="comment">/*</span></div><div class="line">代码解释：</div><div class="line">1. __AtAutoreleasepool() 是其构造函数</div><div class="line">2. ~__AtAutoreleasepool() 是其析构函数</div><div class="line"></div><div class="line">析构函数：与构造函数相反, 析构函数是在对象被撤销时被自动调用, 用于对成员撤销时的一些清理工作, 例如在前面提到的手动释放使用 new 或 malloc 进行申请的内存空间。</div><div class="line"></div><div class="line">析构函数的特点：</div><div class="line">1. 析构函数函数名与类名相同, 紧贴在名称前面用波浪号 ~ 与构造函数进行区分, 例如: ~Point();</div><div class="line">2. 构造函数没有返回类型, 也不能指定参数, 因此析构函数只能有一个, 不能被重载;</div><div class="line">3. 当对象被撤销时析构函数被自动调用, 与构造函数不同的是, 析构函数可以被显式的调用, 以释放对象中动态申请的内存。</div><div class="line">*/</div></pre></td></tr></table></figure>
+<p>这个结构体会在初始化时调用 <code>objc_autoreleasePoolPush()</code> 方法，会在析构时调用 <code>objc_autoreleasePoolPop</code> 方法。</p>
+<p>这表明，我们的 <code>main</code> 函数在实际工作时其实是这样的：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> * argv[])</span> </span>&#123;</div><div class="line">    &#123;</div><div class="line">        <span class="keyword">void</span> * atautoreleasepoolobj = objc_autoreleasePoolPush(); </div><div class="line">        <span class="comment">// do whatever you want</span></div><div class="line">        objc_autoreleasePoolPop(atautoreleasepoolobj);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>通过分析将<code>@autoreleasepool{}</code>的代码展开即可得到上述代码实现，在一个代码块中，先创建<code>atautoreleasepoolobj</code> 对象，然后中间插入iOS应用入口代码，最后自动调用析构函数<code>objc_autoreleasePoolPop</code>给当中的每一个对象发送 -release 消息销毁对象。</p>
+<h3 id="AutoreleasePool-实现原理"><a href="#AutoreleasePool-实现原理" class="headerlink" title="AutoreleasePool 实现原理"></a>AutoreleasePool 实现原理</h3><p>从上一节我们对<code>__AtAutoreleasepool</code>结构体分析可以看出，自动释放池得以实现的核心是在它的构造函数和析构函数中，所以我们接下来就分析这两个函数的内部实现。</p>
+<p>我们定位到 <code>objc_autoreleasePoolPush</code> 和 <code>objc_autoreleasePoolPop</code> 函数的实现代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> *<span class="title">objc_autoreleasePoolPush</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> AutoreleasePoolPage::push();</div><div class="line">&#125;</div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">objc_autoreleasePoolPop</span><span class="params">(<span class="keyword">void</span> *ctxt)</span> </span>&#123;</div><div class="line">    AutoreleasePoolPage::pop(ctxt);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>从函数实现中可以看出，内部使用了一个名为<code>AutoreleasePoolPage</code>的c++类，通过调用此类的push() 方法和pop()方法来实现被释放对象的添加和销毁操作。</p>
+<p>既然这几个方法是拨开云雾的关键，那么我们就逐一分析：AutoreleasePoolPage的结构、objc_autoreleasePoolPush（） 方法、objc_autoreleasePoolPop（）方法。</p>
+<p><strong>AutoreleasePoolPage的结构</strong></p>
+<p><code>AutoreleasePoolPage</code>的一个c++类，它在NSObject.mm 文件中的定义如下：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">AutoreleasePoolPage</span> &#123;</span></div><div class="line">    <span class="keyword">magic_t</span> <span class="keyword">const</span> magic;</div><div class="line">    id *next;</div><div class="line">    <span class="keyword">pthread_t</span> <span class="keyword">const</span> thread;</div><div class="line">    AutoreleasePoolPage * <span class="keyword">const</span> parent;</div><div class="line">    AutoreleasePoolPage *child;</div><div class="line">    <span class="keyword">uint32_t</span> <span class="keyword">const</span> depth;</div><div class="line">    <span class="keyword">uint32_t</span> hiwat;</div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="comment">/* 类成员结构解析：</span></div><div class="line">	magic：用来校验AutoreleasePoolPage 的结构是否完整</div><div class="line">	*next：指向最新添加的auoreleased 对象的下一个位置，初始化时指向begin()</div><div class="line">	thread：指向当前线程</div><div class="line">	parent：指向父结点，第一个结点的 parent 值为 nil</div><div class="line">	child：指向子结点，最后一个结点的 child 值为 nil</div><div class="line">	depth：代表深度，从 0 开始，往后递增 1；</div><div class="line">	hiwat：代表 high water mark 。</div><div class="line">*/</div></pre></td></tr></table></figure>
+<p>一个空的AutoreleasePoolPage 的内存结构如下图所示：</p>
+<p><img src="http://blog.leichunfeng.com/images/AutoreleasePoolPage.png" alt="img1"></p>
+<p>另外，当 <code>next == begin()</code> 时，表示 AutoreleasePoolPage 为空；当 <code>next == end()</code> 时，表示 AutoreleasePoolPage 已满。</p>
+<p>每个自动释放池都是由一系列的<code>AutoreleasePoolPage</code>组成的，并且每一个<code>AutoreleasePoolPage</code>的大小都是4096字节（16进制<code>0x1000</code>）</p>
+<p><strong>AutoreleasePoolPage在自动释放池中的组织结构</strong></p>
+<p><code>AutoreleasePoolPage</code>在自动释放池中是以<strong>双向链表</strong>的形式链接起来的：</p>
+<p><img src="https://i.loli.net/2019/02/25/5c73a340b7686.png" alt="img1"></p>
+<blockquote>
+<p>parent 和 child 就是用来构造双向链表的指针。</p>
+</blockquote>
+<p><strong>objc_autoreleasePoolPush()  方法解析</strong></p>
+<p>其中有个很重要定义<code>POOL_SENTINEL</code> ，它叫哨兵对象，本质是一个<code>nil</code>的宏定义：</p>
+<figure class="highlight swift"><table><tr><td class="code"><pre><div class="line">#define <span class="type">POOL_SENTINEL</span> <span class="literal">nil</span></div></pre></td></tr></table></figure>
+<p>在每个自动释放池初始化调用 <code>objc_autoreleasePoolPush()</code> 的时候，都会把一个 <code>POOL_SENTINEL</code> push 到自动释放池的栈顶，并且返回这个 <code>POOL_SENTINEL</code> 哨兵对象。上面讲解<code>@autoreleasepool()</code>代码块的时候，其中的<code>atautoreleasepoolobj</code>对象就是一个<code>POOL_SENTINEL</code>。</p>
+<p>接下来我们分析<code>objc_autoreleasePoolPush</code>方法的实现，从上面的分析可以得出<code>objc_autoreleasePoolPush</code>方法、<code>push()</code>方法等的实现如下：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="comment">/* 代码从上至下依次调用 */</span> </div><div class="line"></div><div class="line"><span class="comment">// 1. objc_autoreleasePoolPush()</span></div><div class="line"><span class="function"><span class="keyword">void</span> *<span class="title">objc_autoreleasePoolPush</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> AutoreleasePoolPage::push();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 2. push()</span></div><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">void</span> *<span class="title">push</span><span class="params">()</span> </span>&#123;</div><div class="line">   <span class="keyword">return</span> autoreleaseFast(POOL_SENTINEL);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 3. autoreleaseFast(), 参数obj 就是需要自动释放的对象</span></div><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> id *<span class="title">autoreleaseFast</span><span class="params">(id obj)</span></span></div><div class="line">&#123;</div><div class="line">   AutoreleasePoolPage *page = hotPage();</div><div class="line">   <span class="keyword">if</span> (page &amp;&amp; !page-&gt;full()) &#123;</div><div class="line">       <span class="keyword">return</span> page-&gt;add(obj);</div><div class="line">   &#125; <span class="keyword">else</span> <span class="keyword">if</span> (page) &#123;</div><div class="line">       <span class="keyword">return</span> autoreleaseFullPage(obj, page);</div><div class="line">   &#125; <span class="keyword">else</span> &#123;</div><div class="line">       <span class="keyword">return</span> autoreleaseNoPage(obj);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>上述方法<code>autoreleaseFast:</code>的实现中有三种选择：</p>
+<blockquote>
+<p>hotPage：可以理解为当前正在使用的 AutoreleasePoolPage</p>
+</blockquote>
+<ul>
+<li>当page 存在，且没有满时：调用<code>page-&gt;add(obj)</code>方法将对象添加至<code>AutoreleasePoolPage</code>的栈中</li>
+<li>当page存在，已经满时：<ul>
+<li>调用<code>autoreleaseFullPage</code>初始化一个新页</li>
+<li>调用<code>page-&gt;add(obj)</code>将obj添加到新创建的page的栈中</li>
+</ul>
+</li>
+<li>无page时：<ul>
+<li>调用<code>autoreleaseNoPage</code>创建一个<code>hotPage</code></li>
+<li>调用<code>page-&gt;add(obj)</code>方法将对象添加至<code>AutoreleasePoolPage</code>的栈中</li>
+</ul>
+</li>
+</ul>
+<p><strong>page-&gt; add() 方法的实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="function">id *<span class="title">add</span><span class="params">(id obj)</span> </span>&#123;</div><div class="line">    id *ret = next;</div><div class="line">    *next = obj;</div><div class="line">    next++;</div><div class="line">    <span class="keyword">return</span> ret;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>将obj对象添加到<code>hotPage</code>中，并移动 <code>*next</code>指针指向obj对象的下一个位置，本质上是一个压栈操作。</p>
+<p><strong>objc_autoreleasePoolPop()  方法解析</strong></p>
+<p>回顾上述分析，<code>objc_autoreleasePoolPop</code>方法的实现如下：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">objc_autoreleasePoolPop</span><span class="params">(<span class="keyword">void</span> *ctxt)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (UseGC) <span class="keyword">return</span>;</div><div class="line">    </div><div class="line">    <span class="comment">// fixme rdar://9167170</span></div><div class="line">    <span class="keyword">if</span> (!ctxt) <span class="keyword">return</span>;</div><div class="line"></div><div class="line">    AutoreleasePoolPage::pop(ctxt);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/*</span></div><div class="line">看起来传入任何一个指针都是可以的，但是在整个工程并没有发现传入其他对象的例子。不过在这个方法中传入其它的指针也是可行的，会将自动释放池释放到相应的位置。</div><div class="line">*/</div></pre></td></tr></table></figure>
+<p>pop 函数的入参就是 push 函数的返回值，也就是 <code>POOL_SENTINEL</code> 的内存地址 。当执行 pop 操作时，内存地址在 <code>POOL_SENTINEL</code> 之后的所有 autoreleased 对象都会被 release 。直到 <code>POOL_SENTINEL</code> 所在 page 的 <code>next</code> 指向 <code>POOL_SENTINEL</code> 为止。</p>
+<p>下面是某个线程的 autoreleasepool 堆栈的内存结构图，在这个 autoreleasepool 堆栈中总共有两个 <code>POOL_SENTINEL</code> ，即有两个 autoreleasepool 。该堆栈由三个 AutoreleasePoolPage 结点组成，第一个 AutoreleasePoolPage 结点为 <code>coldPage()</code> ，最后一个 AutoreleasePoolPage 结点为 <code>hotPage()</code> 。其中，前两个结点已经满了，最后一个结点中保存了最新添加的 autoreleased 对象 <code>objr3</code> 的内存地址。</p>
+<p><img src="https://i.loli.net/2019/02/25/5c73b361cab65.png" alt="img3"></p>
+<p>此时，如果执行 <code>pop(token1)</code> 操作，那么该 autoreleasepool 堆栈的内存结构将会变成如下图所示：</p>
+<p><img src="https://i.loli.net/2019/02/25/5c73b363bd161.png" alt="img4"></p>
+<p><strong>autorelease 方法</strong></p>
+<p>最后我们分析下<code>autorelease</code> 方法内部的实现原理。首先，我们先看一下方法调用栈：</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line">- [obj autorelease]</div><div class="line">└── <span class="keyword">id</span> objc_object::rootAutorelease()</div><div class="line">    └── <span class="keyword">id</span> objc_object::rootAutorelease2()</div><div class="line">        └── <span class="keyword">static</span> <span class="keyword">id</span> AutoreleasePoolPage::autorelease(<span class="keyword">id</span> obj)</div><div class="line">            └── <span class="keyword">static</span> <span class="keyword">id</span> AutoreleasePoolPage::autoreleaseFast(<span class="keyword">id</span> obj)</div><div class="line">                ├── <span class="keyword">id</span> *add(<span class="keyword">id</span> obj)</div><div class="line">                ├── <span class="keyword">static</span> <span class="keyword">id</span> *autoreleaseFullPage(<span class="keyword">id</span> obj, AutoreleasePoolPage *page)</div><div class="line">                │   ├── AutoreleasePoolPage(AutoreleasePoolPage *newParent)</div><div class="line">                │   └── <span class="keyword">id</span> *add(<span class="keyword">id</span> obj)</div><div class="line">                └── <span class="keyword">static</span> <span class="keyword">id</span> *autoreleaseNoPage(<span class="keyword">id</span> obj)</div><div class="line">                    ├── AutoreleasePoolPage(AutoreleasePoolPage *newParent)</div><div class="line">                    └── <span class="keyword">id</span> *add(<span class="keyword">id</span> obj)</div></pre></td></tr></table></figure>
+<p> 从上面从调用栈中可以看出， 会先调用<code>AutoreleasePoolPage</code>的<code>autorelease()</code>方法， 最后会调用上面提到<code>autoreleaseFast</code>方法，将obj对象添加<code>AutoreleasePoolPage</code>中。 下面是<code>autorelease()</code>方法的实现：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> id <span class="title">autorelease</span><span class="params">(id obj)</span></span></div><div class="line">&#123;</div><div class="line">    assert(obj);</div><div class="line">    assert(!obj-&gt;isTaggedPointer());</div><div class="line">    id *dest __unused = autoreleaseFast(obj); <span class="comment">// 最终会调用 autoreleaseFast 方法</span></div><div class="line">    assert(!dest  ||  *dest == obj);</div><div class="line">    <span class="keyword">return</span> obj;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>整个自动释放池 <code>AutoreleasePool</code> 的实现以及 <code>autorelease</code> 方法都已经分析完了，归纳总结后，得出了下面的几个要点：</p>
+<ul>
+<li>自动释放池是由 <code>AutoreleasePoolPage</code> 以双向链表的方式实现的</li>
+<li>当对象调用 <code>autorelease</code> 方法时，会将对象加入 <code>AutoreleasePoolPage</code> 的栈中</li>
+<li>调用 <code>AutoreleasePoolPage::pop</code> 方法会向栈中的对象发送 <code>release</code> 消息</li>
+</ul>
+<h3 id="参考-引用"><a href="#参考-引用" class="headerlink" title="参考/引用"></a>参考/引用</h3><blockquote>
+<p><a href="https://draveness.me/autoreleasepool" target="_blank" rel="noopener">自动释放池的前世今生 —- 深入解析 autoreleasepool</a></p>
+<p><a href="http://blog.leichunfeng.com/blog/2015/05/31/objective-c-autorelease-pool-implementation-principle/" target="_blank" rel="noopener">Objective-C Autorelease Pool 的实现原理</a> </p>
+</blockquote>
+
+
+                <hr>
+
+                
+
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/2019/02/28/对象、类、元类、isa指针之间的爱恨情仇/" data-toggle="tooltip" data-placement="top" title="对象、类、元类、isa指针之间的爱恨情仇">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/2018/11/03/VPS下搭建ownCloud云盘/" data-toggle="tooltip" data-placement="top" title="VPS下搭建ownCloud云盘">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                
+
+                
+
+            </div>
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#iOS" title="iOS">iOS</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://huangxuan.me" target="_blank">Hux Blog</a></li>
+                    
+                        <li><a href="https://unsplash.com/" target="_blank">Unsplash</a></li>
+                    
+                </ul>
+                
+            </div>
+
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                    <li>
+                        <a target="_blank" href="https://twitter.com/jerrywangjing">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/jing-wang-68-66">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/JerryWang">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/jerrywangjing">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Jerry&#39;s Blog 2019 
+                    <br>
+                    Theme by <a href="http://huangxuan.me">Hux</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    Ported by <a href="http://blog.kaijun.rocks">Kaijun</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=kaijun&repo=hexo-theme-huxblog&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://jerrywangjing.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-136960405-1';
+    var _gaDomain = 'auto';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+
+
+<!-- Image to hack wechat -->
+<img src="https://jerrywangjing.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

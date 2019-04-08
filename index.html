@@ -90,7 +90,7 @@
 
                         
                         <li>
-                            <a href="/about/">About</a>
+                            <a href="/tags/">Tags</a>
                         </li>
                         
                     
@@ -104,7 +104,7 @@
 
                         
                         <li>
-                            <a href="/tags/">Tags</a>
+                            <a href="/about/">About</a>
                         </li>
                         
                     
@@ -192,10 +192,10 @@
             
         </h3>
         <div class="post-content-preview">
-            iOS 中各种“锁”的理解及应用通常在一般的iOS应用开发中会很少碰到使用“锁”的业务逻辑，但是在需要使用多线程技术，解决大多数场景写的业务逻辑时，会使用到线程锁来保证临界数据的读写安全性。当然，“锁”的概念在计算机科学及应用中也是举足轻重的，对于要写出高质量、高性能、安全可靠的代码来说，也是非常重要的。
+            前言通常在一般的iOS应用开发中会很少碰到使用“锁”的业务逻辑，但是在需要使用多线程技术，解决大多数场景写的业务逻辑时，会使用到线程锁来保证临界数据的读写安全性。当然，“锁”的概念在计算机科学及应用中也是举足轻重的，对于要写出高质量、高性能、安全可靠的代码来说，也是非常重要的。
 预备知识
 线程调度
-计算机通常只有一个CPU,在任意时刻只能执行一条机器指令,每个线程......
+计算机通常只有一个CPU,在任意时刻只能执行一条机器指令,每个线程只有获得CPU的使用权才能执......
         </div>
     </a>
     <p class="post-meta">
@@ -289,6 +289,51 @@ iOS代码混淆之编译优化
 
 <div class="post-preview">
 
+    <a href="/2019/02/28/对象、类、元类、isa指针之间的爱恨情仇/">
+        <h2 class="post-title">
+            对象、类、元类、isa指针之间的爱恨情仇
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            前言在iOS开发中，对象、类的使用可以说是无处不在，伴随着整个项目的开发周期，也是程序的重要组成部分。但是在日常开发中，很难直观的见到元类、isa指针，那么它们究竟是谁，在开发中起着什么作用呢？下面我们就分别介绍下这几位亲兄弟的结构体定义，以及之间的关联关系。
+类(class)的结构体定义类对象(Class)是由程序员定义并在运行时有编译器创建的，他没有自己的实例变量，这里需要注意的是类的成......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jerry on
+        2019-02-28
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/2019/02/28/深入剖析Autorelease-Pool-自动释放池/">
+        <h2 class="post-title">
+            深入剖析Autorelease Pool (自动释放池)
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            前言在MRC的内存管理模式下，可以将创建的对象加入自动释放池，程序员则无需手动调用release方法来释放对象，而是当自动释放池销毁的时候会对其中的每一个对象发送release消息，从而达到自动释放的目的。下面我们一步步揭开它的神秘面纱，深度剖析autoreleasepool的实现原理。
+@autoreleasepool 实现原理main.m文件中的@autoreleasepool()
+在i......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jerry on
+        2019-02-28
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
     <a href="/2018/11/03/VPS下搭建ownCloud云盘/">
         <h2 class="post-title">
             VPS下搭建ownCloud云盘
@@ -297,10 +342,10 @@ iOS代码混淆之编译优化
             
         </h3>
         <div class="post-content-preview">
-            基于ownCloud在VPS（CentOS 7）上搭建私有云盘前言鉴于各大网络云盘的各种限制，收费制度和用户体验并不好，利用VPS来搭建一个私有云盘就会变得越来越受欢迎，目前主流的开源软件ownCloud，NexCloud等都可以实现，下面我们就选ownCloud来搭建，vps选择的搬瓦工。
+            前言鉴于各大网络云盘的各种限制，收费制度和用户体验并不好，利用VPS来搭建一个私有云盘就会变得越来越受欢迎，目前主流的开源软件ownCloud，NexCloud等都可以实现，下面我们就选ownCloud来搭建，vps选择的搬瓦工。
 准备
 一台VPS服务器，开启root权限
-LAMP环境。ownCloud需要Web服务器，数据库和P......
+LAMP环境。ownCloud需要Web服务器，数据库和PHP才能正常工作。 设置LAMP（Linux，Apache，M......
         </div>
     </a>
     <p class="post-meta">
@@ -342,15 +387,15 @@ LAMP环境。ownCloud需要Web服务器，数据库和P......
                     <div class="tags">
                         
                             
-                        
-                            
-                        
-                            
-                            <a href="/tags/#iOS" title="iOS" rel="4">iOS</a>
+                            <a href="/tags/#iOS" title="iOS" rel="6">iOS</a>
                             
                         
                             
                             <a href="/tags/#代码混淆" title="代码混淆" rel="3">代码混淆</a>
+                            
+                        
+                            
+                        
                             
                         
                     </div>

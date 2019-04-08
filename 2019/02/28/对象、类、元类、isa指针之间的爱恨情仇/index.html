@@ -13,11 +13,11 @@
 
     <title>
         
-          iOS代码混淆之方法名替换 - Jerry的博客 | Jerry&#39;s Blog
+          对象、类、元类、isa指针之间的爱恨情仇 - Jerry的博客 | Jerry&#39;s Blog
         
     </title>
 
-    <link rel="canonical" href="https://jerrywangjing.github.io/2019/03/02/iOS代码混淆之方法名替换/">
+    <link rel="canonical" href="https://jerrywangjing.github.io/2019/02/28/对象、类、元类、isa指针之间的爱恨情仇/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -167,14 +167,12 @@
                         
                           <a class="tag" href="/tags/#iOS" title="iOS">iOS</a>
                         
-                          <a class="tag" href="/tags/#代码混淆" title="代码混淆">代码混淆</a>
-                        
                     </div>
-                    <h1>iOS代码混淆之方法名替换</h1>
+                    <h1>对象、类、元类、isa指针之间的爱恨情仇</h1>
                     <h2 class="subheading"></h2>
                     <span class="meta">
                         Posted by Jerry on
-                        2019-03-02
+                        2019-02-28
                     </span>
                 </div>
             </div>
@@ -193,82 +191,74 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <blockquote>
-<p>这是iOS代码混淆系列文章的第一篇，后两篇可以点击下方链接查看</p>
-<p><a href="http://wjerry.com/2019/04/05/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E8%B5%84%E6%BA%90%E6%9B%BF%E6%8D%A2/" target="_blank" rel="noopener">iOS代码混淆之资源替换</a></p>
-<p><a href="http://wjerry.com/2019/04/05/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/" target="_blank" rel="noopener">iOS代码混淆之编译优化</a></p>
-</blockquote>
-<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在iOS开发中，某些项目为了保护代码安全，不被黑客攻破，通常需要在上架之前对源代码进行加密混淆，下面就介绍一种简单可行的Objective-C代码混淆方案。</p>
-<h4 id="混淆思路"><a href="#混淆思路" class="headerlink" title="混淆思路"></a>混淆思路</h4><p>由于现在的逆向技术越来越高超，各种破解方案层出不穷，其中就可以使用<code>class-dump</code>命令行工具轻易的dump出<code>demo.app</code>文件中的所有头文件，代码立马回暴露在黑客面前，对项目产生了很多不利因素。因此将代码关键方法进行混淆保护迫在眉睫。</p>
-<p>现有的一种混淆方案就是通过对指定class name 方法名进行MD5加密（显示乱码），然后通过脚本代码将加密的方法名生成到指定的头文件中，然后再使用宏替换的方式将混淆过的方法名在代码预编译阶段进行替换，使方法名即便在<code>class-dump</code>后也只会显示加密后的乱码显示，造成代码不易读，从而实现一定程度上的混淆保护。</p>
-<h4 id="混淆方式"><a href="#混淆方式" class="headerlink" title="混淆方式"></a>混淆方式</h4><p>通过宏定义（#define）的方法名映射，进行字符串替换。这样做的好处在于可以将映射类别规整到一个头文件中，并<code>#import</code> 进项目的<code>prefixHeader.h</code> 预编译头文件中，方便在项目编译时进行全局替换。当不需要混淆的时候，则不导入该头文件即可。</p>
-<h4 id="混淆脚本"><a href="#混淆脚本" class="headerlink" title="混淆脚本"></a>混淆脚本</h4><p>下面的shell脚本引自的是“念茜-安全攻防”系列文章，实现思路是将敏感的方法名集中写入func.plist文件中，并逐一<code>#define</code>成随机字符串，最后写入一个.h头文件中。脚本代码如下：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash">!/usr/bin/env bash</span></div><div class="line"></div><div class="line">TABLENAME=symbols</div><div class="line">SYMBOL_DB_FILE="symbols"</div><div class="line">STRING_SYMBOL_FILE="func.list"</div><div class="line">HEAD_FILE="$PROJECT_DIR/$PROJECT_NAME/codeObfuscation.h"</div><div class="line">export LC_CTYPE=C</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash">维护数据库方便日后作排重</span></div><div class="line">createTable()</div><div class="line">&#123;</div><div class="line">    echo "create table $TABLENAME(src text, des text);" | sqlite3 $SYMBOL_DB_FILE</div><div class="line">&#125;</div><div class="line"></div><div class="line">insertValue()</div><div class="line">&#123;</div><div class="line">    echo "insert into $TABLENAME values('$1' ,'$2');" | sqlite3 $SYMBOL_DB_FILE</div><div class="line">&#125;</div><div class="line"></div><div class="line">query()</div><div class="line">&#123;</div><div class="line">    echo "select * from $TABLENAME where src='$1';" | sqlite3 $SYMBOL_DB_FILE</div><div class="line">&#125;</div><div class="line"></div><div class="line">ramdomString()</div><div class="line">&#123;</div><div class="line">    openssl rand -base64 64 | tr -cd 'a-zA-Z' |head -c 16</div><div class="line">&#125;</div><div class="line"></div><div class="line">rm -f $SYMBOL_DB_FILE</div><div class="line">rm -f $HEAD_FILE</div><div class="line">createTable</div><div class="line"></div><div class="line">touch $HEAD_FILE</div><div class="line">echo '#ifndef Demo_codeObfuscation_h</div><div class="line"><span class="meta">#</span><span class="bash">define Demo_codeObfuscation_h<span class="string">' &gt;&gt; $HEAD_FILE</span></span></div><div class="line">echo "//confuse string at `date`" &gt;&gt; $HEAD_FILE</div><div class="line">cat "$STRING_SYMBOL_FILE" | while read -ra line; do</div><div class="line">    if [[ ! -z "$line" ]]; then</div><div class="line">        ramdom=`ramdomString`</div><div class="line">        echo $line $ramdom</div><div class="line">        insertValue $line $ramdom</div><div class="line">        echo "#define $line $ramdom" &gt;&gt; $HEAD_FILE</div><div class="line">    fi</div><div class="line">done</div><div class="line">echo "#endif" &gt;&gt; $HEAD_FILE</div><div class="line"></div><div class="line">sqlite3 $SYMBOL_DB_FILE .dump</div></pre></td></tr></table></figure>
-<h4 id="配置步骤"><a href="#配置步骤" class="headerlink" title="配置步骤"></a>配置步骤</h4><ol>
-<li><p>创建混淆脚本文件<code>confuse.sh</code>，拷贝上述脚本代码到文件中保存，然后把该脚本文件放到项目根目录。例如：<code>yourProject_path/</code>目录下。</p>
+                <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在iOS开发中，对象、类的使用可以说是无处不在，伴随着整个项目的开发周期，也是程序的重要组成部分。但是在日常开发中，很难直观的见到元类、isa指针，那么它们究竟是谁，在开发中起着什么作用呢？下面我们就分别介绍下这几位亲兄弟的结构体定义，以及之间的关联关系。</p>
+<h4 id="类-class-的结构体定义"><a href="#类-class-的结构体定义" class="headerlink" title="类(class)的结构体定义"></a>类(class)的结构体定义</h4><p>类对象(Class)是由程序员定义并在运行时有编译器创建的，他没有自己的实例变量，这里需要注意的是类的<strong>成员变量</strong>和<strong>实例方法列表</strong>是属于实例对象的，但其存储于类对象当中。下图指出类的结构体定义：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="comment">// An opaque type that represents an Objective-C class.</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">objc_class</span> *<span class="title">Class</span>;</span></div><div class="line"></div><div class="line"><span class="comment">// OC1.0 class 结构体定义</span></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">objc_class</span> &#123;</span></div><div class="line">	Class _Nonnull isa  OBJC_ISA_AVAILABILITY;</div><div class="line"><span class="meta">#<span class="meta-keyword">if</span> !__OBJC2__</span></div><div class="line">	Class _Nullable super_class                              OBJC2_UNAVAILABLE;</div><div class="line">	<span class="keyword">const</span> <span class="keyword">char</span> * _Nonnull name                               OBJC2_UNAVAILABLE;</div><div class="line">	<span class="keyword">long</span> version                                             OBJC2_UNAVAILABLE;</div><div class="line">	<span class="keyword">long</span> info                                                OBJC2_UNAVAILABLE;</div><div class="line">	<span class="keyword">long</span> instance_size                                       OBJC2_UNAVAILABLE;</div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">objc_ivar_list</span> * _<span class="title">Nullable</span> <span class="title">ivars</span>                  <span class="title">OBJC2_UNAVAILABLE</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">objc_method_list</span> * _<span class="title">Nullable</span> * _<span class="title">Nullable</span> <span class="title">methodLists</span> <span class="title">OBJC2_UNAVAILABLE</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">objc_cache</span> * _<span class="title">Nonnull</span> <span class="title">cache</span>                       <span class="title">OBJC2_UNAVAILABLE</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">objc_protocol_list</span> * _<span class="title">Nullable</span> <span class="title">protocols</span>          <span class="title">OBJC2_UNAVAILABLE</span>;</span></div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">&#125; OBJC2_UNAVAILABLE;</div><div class="line"><span class="comment">/* Use `Class` instead of `struct objc_class *` */</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="comment">// OC2.0 class 结构体定义，我们注意到上面的定义后面的标识符OBJC2_UNAVAILABLE，意思是已经不适用ObjC2.0了，现在ObjC2.0 对objc_class的定义如下：</span></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">objc_class</span> :</span> objc_object &#123;</div><div class="line">    <span class="keyword">isa_t</span> isa;</div><div class="line">    Class superclass;</div><div class="line">    <span class="keyword">cache_t</span> cache;</div><div class="line">    <span class="keyword">class_data_bits_t</span> bits;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>我们在<code>objc/objc.h</code> 源码文件中找到了Class 类结构体的定义，下面我们分析并说明一下几个关键的结构体成员：</p>
+<ul>
+<li><strong>isa</strong>：  是一个不能为空(null)的Class对象，它指向该类的元类(meta class)。</li>
+<li><strong>super_class</strong>：是一个可以为空的Class对象，它指向当前类的父类。会一直追溯到根类(NSObject)，那么根类(NSObject)的父类是指向谁的呢？通过分析根类的父类是指向空(nil)的，这样也就可以解释为什么<code>super_class</code> 是可以为空的。</li>
+<li><strong>ivars：</strong>是实例变量列表，保存着该类的所有实例变量</li>
+<li><strong>methodLists：</strong>是方法列表，保存着实例方法和类方法</li>
+<li><strong>protocols：</strong>是协议列表，保存该类的协议方法</li>
+<li><strong>cache：</strong>是一个缓存，用于缓存最近使用过的方法。</li>
+<li><strong>…</strong></li>
+</ul>
+<p>上面我们根据Class 类的结构体，分析内部成员的作用及含义。想必大家已经对Class类的内部结构有了一个初步的认识。如果想再深入理解<code>isa</code>和<code>super_class</code>在不同情况下都是如何进行指向的，我们再看下面的一个图示来逐步分析：</p>
+<p><img src="https://i.loli.net/2019/02/26/5c750055e444c.png" alt="img1"></p>
+<p>首先，注意图中的注释，实线的箭头(→ superclass)代表<strong>父类指针</strong>，虚线的箭头(→isa)代表<code>isa</code>指针，从上至下的深色方框依次代表：<strong>根类-&gt; 父类-&gt; 子类</strong>，下面咱们从上至下层层分析上图的含义：</p>
+<ul>
+<li>第一层：<ul>
+<li><strong>isa指针：</strong> 根类的实例对象(<code>instance Of Root class)</code>的<code>isa</code>指向根类(<code>Root class</code>)，根类的<code>isa</code>指针指向根元类(<code>Root meta class</code>)，根元类的<code>isa</code>指向它本身。</li>
+<li><strong>superclass指针：</strong>根类(<code>Root class</code>)的<code>superclass</code>指向<code>nil</code>，根元类的父类指向根类。</li>
+</ul>
 </li>
-<li><p>创建配置方法名称的列表文件，名为：<code>func.list</code>，此文件用于将需要混淆的方法名称写入进去，当项目编译时Build，会执行脚本遍历此文件中的方法名执行混淆操作，填写示例：</p>
-<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line">-(<span class="keyword">void</span>)sample;   <span class="comment">// 无参数方法</span></div><div class="line">-(<span class="keyword">void</span>)seg1:(<span class="built_in">NSString</span> *)string seg2:(<span class="built_in">NSUInteger</span>)num;  <span class="comment">// 有参数方法</span></div><div class="line"></div><div class="line"><span class="comment">// func.list 文件中这样写即可</span></div><div class="line">sample</div><div class="line">seg1</div><div class="line">seg2</div></pre></td></tr></table></figure>
-<p>然后将创建好的<code>func.list</code>文件同样拷贝到项目根目录，也可以将<code>confuse.sh</code> 和<code>func.list</code>文件都添加进项目目录中，方便日后查看与维护，Xcode 左上角点击<code>File --&gt; Add Files to &quot;xxx&quot;</code>添加即可。</p>
+<li>第二层：<ul>
+<li><strong>isa指针：</strong>父类的实例对象(<code>instance of superclass</code>)的<code>isa</code>指向父类（superclass），父类的<code>isa</code>指向父元类，父元类的<code>isa</code>指向根元类。</li>
+<li><strong>superclass指针：</strong>父类的<code>superclass</code>指向根类，父元类的<code>superclass</code>指向根元类。</li>
+</ul>
 </li>
-<li><p>配置<code>Build Phases</code>脚本</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><div class="line">// 脚本代码</div><div class="line"><span class="meta">$</span><span class="bash">PROJECT_DIR/confuse.sh</span></div></pre></td></tr></table></figure>
-<p>操作步骤如下图：</p>
-<p><img src="https://i.loli.net/2019/02/19/5c6bcd8ccbd30.png" alt="img1"></p>
+<li>第三层：<ul>
+<li><strong>isa指针：</strong>子类实例对象（instance of subclass）的<code>isa</code>指向子类，子类的<code>isa</code>指向子元类，子元类的<code>isa</code>指向根元类。</li>
+<li><strong>superclass指针：</strong>子类的<code>superclass</code>指向父类，子元类的<code>superclass</code>指向父元类。</li>
+</ul>
 </li>
-<li><p>在<code>PrefixHeader.h</code>头文件中添加如下代码，意思是只有在Release模式下，才导入混淆头文件</p>
-<figure class="highlight swift"><table><tr><td class="code"><pre><div class="line"><span class="comment">// 混淆定义宏头文件，当在debug模式下，会执行脚本生成替换字符串，在release模式下导入宏文件执行替换</span></div><div class="line"></div><div class="line">#<span class="keyword">if</span> (<span class="type">DEBUG</span> != <span class="number">1</span>)</div><div class="line">#<span class="keyword">import</span> "codeObfuscation.h"</div><div class="line">#endif</div></pre></td></tr></table></figure>
-</li>
-<li><p>执行编译，可观察编译日志，查看custom shell 是否正确执行，如下图：</p>
-<p><img src="https://i.loli.net/2019/02/19/5c6bcfe0d585e.png" alt="img2"></p>
-</li>
-<li><p>如果编译成功，会在项目根目录生成一个头文件<code>codeObfuscation.h</code>，此文件中正是包含了宏替换的关键内容，将此文件添加到项目中，会在release模式下进行替换。</p>
-</li>
-</ol>
-<h4 id="可能会遇到的问题"><a href="#可能会遇到的问题" class="headerlink" title="可能会遇到的问题"></a>可能会遇到的问题</h4><ol>
-<li><p>第一次编译成功之前，即脚本代码执行之前是不会有<code>codeObfuscation.h</code>文件的，所以可能在<code>PrefixHeader.h</code> 文件中报错：Error_找不到该文件。<strong>解决方法：暂时注释掉即可</strong>。</p>
-</li>
-<li><p>在执行脚本时，编译日志处出现如下报错：</p>
-<p><img src="https://i.loli.net/2019/02/19/5c6bcfe0d7e90.png" alt="img3"></p>
-<p>上图表示在执行脚本代码时，未能找到<code>func.list</code> 文件或其他文件，这时需要查看脚本代码中该文件的配置路径是否正确。<strong>解决方法：在confuse.sh文件中排查各项配置路径，并改正</strong>。</p>
-</li>
-<li><p>在执行脚本时，如遇到如下报错：</p>
-<figure class="highlight stylus"><table><tr><td class="code"><pre><div class="line">confuse<span class="selector-class">.sh</span>: Permission denied</div></pre></td></tr></table></figure>
-<p>说明<code>confuse.sh</code>脚本文件没有可执行权限，需要在终端iTerm2 中给<code>confuse.sh</code>文件添加执行权限，如下操作即可：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><div class="line">chmod a+x confuse.sh</div></pre></td></tr></table></figure>
-</li>
-</ol>
-<h4 id="使用class-dump-来测试"><a href="#使用class-dump-来测试" class="headerlink" title="使用class-dump 来测试"></a>使用class-dump 来测试</h4><p><code>class-dump</code>是一个命令行工具，它利用Objective-C语言的runtime的特性，将存储在mach-O文件中的@interface和@protocol信息提取出来，并生成对应的.h文件。 它将xx.app格式的iOS项目文件进行分析，并通过命令生成该app源代码中的所有头文件列表，其中就包含了方法名称，可以清晰的查看dump出来的方法名是否已经被混淆。</p>
-<h4 id="安装-class-dump"><a href="#安装-class-dump" class="headerlink" title="安装 class-dump"></a>安装 class-dump</h4><p>首先需要去这里：<a href="http://stevenygard.com/projects/class-dump/" target="_blank" rel="noopener">http://stevenygard.com/projects/class-dump/</a>，下载<code>class-dump-3.5.dmg</code>压缩包，解压后将文件夹中的<code>class-dump</code>可执行文件拷贝到<code>/usr/local/bin</code>目录下。</p>
-<p>具体操作步骤：</p>
+</ul>
+<p><strong>动态创建一个类</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="comment">// 创建一个新类和元类</span></div><div class="line"><span class="function">Class <span class="title">objc_allocateClassPair</span> <span class="params">( Class superclass, <span class="keyword">const</span> <span class="keyword">char</span> *name, <span class="keyword">size_t</span> extraBytes )</span></span>; <span class="comment">//如果创建的是root class，则superclass为Nil。extraBytes通常为0</span></div><div class="line"><span class="comment">// 销毁一个类及其相关联的类</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">objc_disposeClassPair</span> <span class="params">( Class cls )</span></span>; <span class="comment">//在运行中还存在或存在子类实例，就不能够调用这个。</span></div><div class="line"><span class="comment">// 在应用中注册由objc_allocateClassPair创建的类</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">objc_registerClassPair</span> <span class="params">( Class cls )</span></span>; <span class="comment">//创建了新类后，然后使用class_addMethod，class_addIvar函数为新类添加方法，实例变量和属性后再调用这个来注册类，再之后就能够用了。</span></div></pre></td></tr></table></figure>
+<h4 id="对象-object-的结构体定义"><a href="#对象-object-的结构体定义" class="headerlink" title="对象(object)的结构体定义"></a>对象(object)的结构体定义</h4><figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="comment">// Represents an instance of a class.</span></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">objc_object</span> &#123;</span></div><div class="line">	Class _Nonnull isa  OBJC_ISA_AVAILABILITY;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>我们可以看到，<code>objc_object</code>代表一个实例对象，它的结构体内部有一个不为空的<code>isa</code>指针，<code>isa</code>是指向对象所属类的指针。另外，我们常用的<code>id</code>类型是一个指向<code>objc_object</code>结构体的指针，它可以指向任意一个oc对象。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="comment">// A pointer to an instance of a class.</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">objc_object</span> &#123;</span></div><div class="line">    Class isa;</div><div class="line">&#125; *id;</div></pre></td></tr></table></figure>
+<h4 id="元类-Meta-class-的结构体定义"><a href="#元类-Meta-class-的结构体定义" class="headerlink" title="元类(Meta class)的结构体定义"></a>元类(Meta class)的结构体定义</h4><p>元类(Meta class) 就是<strong>类对象</strong>的<strong>类</strong>，<strong>每个类都有自己的元类</strong>，也就是<code>objc_class</code>结构体里面的<code>isa</code>指针所指向的类。元类用来表述类对象本身所具备的元数据， <strong>因为元类中存储着类对象的方法列表，即类方法</strong>。</p>
+<p>下面将介绍实例对象、类、元类之间的关系，如下图所示：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1283539-ac38532bf444219a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="img2"></p>
+<p>当向对象发消息时，runtime会在这个<strong>对象所属类</strong>的实例方法列表中查找消息对应的方法实现(IMP)。但当向类发送消息时，runtime就会在这个类的<strong>元类</strong>(meta class)方法列表里查找。所有的元类(meta class)，包括根类(Root class)，父类(Superclass)，子类(Subclass)的<code>isa</code>最终都指向根类(Root class)的元类(meta class)，这样能够形成一个闭环。可以总结为：</p>
+<ul>
+<li>当发送消息给实例对象时，runtime函数会在<strong>此实例对象所属类的实例方法列表</strong>中查找方法实现(IMP)并调用，此为<strong>实例方法调用</strong>。</li>
+<li>当发送消息给类对象时，runtime函数会在<strong>此实例对象所属类的元类的方法列表</strong>中查找方法实例(IMP)并调用，此为<strong>类方法调用</strong>。</li>
+</ul>
+<h3 id="延伸扩展"><a href="#延伸扩展" class="headerlink" title="延伸扩展"></a>延伸扩展</h3><p><strong>方法的调用流程</strong></p>
+<p>OC的方法调用本质上是给对象发送消息，即调用runtime的消息发送函数，如下所示：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line">	param: self(id) 接收消息的对象，</div><div class="line">	param: op(SEL)  发送的消息，即方法签名(@selector(method_name))</div><div class="line">*/</div><div class="line">id _<span class="function">Nullable  <span class="title">objc_msgSend</span><span class="params">(id _Nullable self, SEL _Nonnull op, ...)</span></span></div></pre></td></tr></table></figure>
+<p>通过对<code>objc_msgSend()</code>函数的源码分析，总结以下调用流程：</p>
 <ol>
-<li><p>解压class-dump文件，如下图所示：</p>
-<p><img src="https://i.loli.net/2019/02/19/5c6bcfe010d2d.png" alt="img4"></p>
-</li>
-<li><p>打开终端，输入如下命令，即可打开<code>/usr/local/bin</code>目录文件夹，然后将<code>class-dump</code>文件拷贝到此目录下。</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><div class="line">open /usr/local/bin</div></pre></td></tr></table></figure>
-</li>
-<li><p>给<code>class-dump</code>文件更改权限，终端输入如下命令：</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><div class="line">sudo chmod <span class="number">777</span> /usr/local/bin/class-dump</div></pre></td></tr></table></figure>
-</li>
-<li><p>在终端输入<code>class-dump</code>  查看是否安装成功，如显示命令的介绍和版本信息，就说明已经安装成功。</p>
-<p><img src="https://i.loli.net/2019/02/19/5c6bcfe0d305f.png" alt="img5"></p>
-</li>
+<li>检查 selector 是否需要忽略</li>
+<li>检查 target 是否为 nil，如果是 nil 就直接 cleanup，然后 return</li>
+<li>在 target 的 Class 中根据 selector 去找 IMP</li>
 </ol>
-<h4 id="class-dump使用方法"><a href="#class-dump使用方法" class="headerlink" title="class-dump使用方法"></a>class-dump使用方法</h4><p>dump命令如下：</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><div class="line">class-dump -H /Users/xxx/Desktop/century.app -o /Users/jerry/Desktop/centuryHeaders</div></pre></td></tr></table></figure>
-<p>其中，<code>-H</code> 是生成头文件的命令，<code>-o</code> 是指定的头文件保存目录，<code>/Users/xxx/Desktop/century.app</code> 则是App文件的路径。</p>
-<p>将在<code>centuryHeaders</code>文件夹中看到所有dump出的头文件。如下示例：</p>
-<p><img src="https://i.loli.net/2019/02/19/5c6bcfe0da5a0.png" alt="img6"></p>
-<p><strong>Tips：如何从打包出来的xxx.ipa 文件中提取xxx.app 文件</strong></p>
-<p> 先将<code>xxx.ipa</code> 文件后缀名修改为<code>xxx.zip</code> ， 然后解压<code>xxx.zip</code> 文件，会得到一个名为<code>Payload</code>的文件夹，文件夹中就放置的咱们需要的<code>xxx.app</code>文件，导出即可。</p>
-<p><strong>注意：</strong></p>
-<p>不是所有的xxx.app 文件都可以轻易的dump出头文件列表，只有未加密的，自己开发暂未上架App store 的app可以导出，App store 上架的三方应用由于被苹果加过密（加壳），不能直接dump，需要先进行砸壳（Dumpdecrypted工具）后，才能dump出需要的头文件。</p>
-<h4 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h4><p>至此，iOS开发中的Objective-C 代码混淆方案和class-dump技术的使用，都已经讲述清楚了，希望读者能体会到其中的安全攻防思路，在之后的开发中能多注意代码的安全防范。</p>
-<p>注意：这种替换方法名的混淆方案会让App Store 审核被拒，2.3.1 - Performance We discovered that your app contains obfuscated code…，因此，不建议在App Store 上架的项目中使用。</p>
-<h4 id="参考资料："><a href="#参考资料：" class="headerlink" title="参考资料："></a>参考资料：</h4><blockquote>
-<p><a href="https://blog.csdn.net/yiyaaixuexi/article/details/29201699" target="_blank" rel="noopener">https://blog.csdn.net/yiyaaixuexi/article/details/29201699</a></p>
-<p><a href="https://www.jianshu.com/p/1e3fe0a8c048" target="_blank" rel="noopener">https://www.jianshu.com/p/1e3fe0a8c048</a></p>
+<p><strong>寻找IMP的流程</strong></p>
+<ol>
+<li>在当前 class 的方法缓存里寻找（cache methodLists）</li>
+<li>找到了跳到对应的方法实现，没找到继续往下执行</li>
+<li>从当前 class 的 方法列表里查找（methodLists），找到了添加到缓存列表里，然后跳转到对应的方法实现；没找到继续往下执行</li>
+<li>从 superClass 的缓存列表和方法列表里查找，直到找到基类为止</li>
+<li>以上步骤还找不到 IMP，则进入<strong>消息动态处理</strong>和<strong>消息转发</strong>(<code>objc_msgForward</code>)流程，详见<a href="https://www.jianshu.com/p/5127ce0628be" target="_blank" rel="noopener">这篇文章</a></li>
+</ol>
+<p>我们从<code>objc-class.mm</code> 官方源码中找到了寻找IMP的实现过程，如下：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="function">IMP <span class="title">class_getMethodImplementation</span><span class="params">(Class cls, SEL sel)</span></span></div><div class="line">&#123;</div><div class="line">IMP imp;</div><div class="line"><span class="keyword">if</span> (!cls  ||  !sel) <span class="keyword">return</span> nil;</div><div class="line">imp = lookUpImpOrNil(cls, sel, nil,</div><div class="line">YES<span class="comment">/*initialize*/</span>, YES<span class="comment">/*cache*/</span>, YES<span class="comment">/*resolver*/</span>);</div><div class="line"><span class="comment">// Translate forwarding function to C-callable external version</span></div><div class="line"><span class="keyword">if</span> (!imp) &#123;</div><div class="line"><span class="keyword">return</span> _objc_msgForward;</div><div class="line">&#125;</div><div class="line"><span class="keyword">return</span> imp;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><blockquote>
+<p><a href="http://limbank.com/2018/03/09/post18/" target="_blank" rel="noopener">http://limbank.com/2018/03/09/post18/</a></p>
+<p><a href="https://tingxins.com/2017/05/metaclass-class-relationship/" target="_blank" rel="noopener">https://tingxins.com/2017/05/metaclass-class-relationship/</a></p>
 </blockquote>
 
 
@@ -279,12 +269,12 @@
                 <ul class="pager">
                     
                         <li class="previous">
-                            <a href="/2019/03/05/iOS代码混淆之资源替换/" data-toggle="tooltip" data-placement="top" title="iOS代码混淆之资源替换">&larr; Previous Post</a>
+                            <a href="/2019/03/02/iOS代码混淆之方法名替换/" data-toggle="tooltip" data-placement="top" title="iOS代码混淆之方法名替换">&larr; Previous Post</a>
                         </li>
                     
                     
                         <li class="next">
-                            <a href="/2019/02/28/对象、类、元类、isa指针之间的爱恨情仇/" data-toggle="tooltip" data-placement="top" title="对象、类、元类、isa指针之间的爱恨情仇">Next Post &rarr;</a>
+                            <a href="/2019/02/28/深入剖析Autorelease-Pool-自动释放池/" data-toggle="tooltip" data-placement="top" title="深入剖析Autorelease Pool (自动释放池)">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -326,8 +316,6 @@
                     <div class="tags">
                        
                           <a class="tag" href="/tags/#iOS" title="iOS">iOS</a>
-                        
-                          <a class="tag" href="/tags/#代码混淆" title="代码混淆">代码混淆</a>
                         
                     </div>
                 </section>
