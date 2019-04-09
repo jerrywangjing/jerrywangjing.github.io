@@ -90,7 +90,7 @@
 
                         
                         <li>
-                            <a href="/tags/">Tags</a>
+                            <a href="/about/">About</a>
                         </li>
                         
                     
@@ -104,7 +104,7 @@
 
                         
                         <li>
-                            <a href="/about/">About</a>
+                            <a href="/tags/">Tags</a>
                         </li>
                         
                     
@@ -235,6 +235,53 @@ iOS编译原理......
 
 <div class="post-preview">
 
+    <a href="/2019/03/08/离屏渲染知多少/">
+        <h2 class="post-title">
+            离屏渲染知多少?
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            预备知识OpenGL中，GPU屏幕渲染有两种方式:
+On-Screen Rendering (当前屏幕渲染)：指的是GPU的渲染操作是在当前用于显示的屏幕缓冲区进行。
+Off-Screen Rendering (离屏渲染)：指的是在GPU在当前屏幕缓冲区以外开辟一个缓冲区进行渲染操作。
+
+当前屏幕渲染不需要额外创建新的缓存，也不需要开启新的上下文，相对于离屏渲染性能更好。但是受当前屏幕渲染的......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jerry on
+        2019-03-08
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/2019/03/07/RunLoop的实现原理及应用/">
+        <h2 class="post-title">
+            RunLoop的实现原理及应用
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            什么是RunLoop?为了保证线程能随时处理事件且不会退出，我们需要一个run loop 运行循环来一直保持能持续接收并处理各种事件，确保执行线程不被销毁。实现思路类似于如下代码：
+// Event loopfunction loop() &#123;    initialize();    do &#123;        var message = get_next_message();......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jerry on
+        2019-03-07
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
     <a href="/2019/03/05/iOS代码混淆之资源替换/">
         <h2 class="post-title">
             iOS代码混淆之资源替换
@@ -334,6 +381,29 @@ iOS代码混淆之编译优化
 
 <div class="post-preview">
 
+    <a href="/2019/02/21/Method-Swizzling/">
+        <h2 class="post-title">
+            Method Swizzling
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            前言Method swizzling 用于改变Foundation 框架中一个已存在的方法（selector）的实现。常用于对系统方法实现的替换，可实现插入自定义代码逻辑，代码hook等功能。
+实现原理这项技术使得在运行时通过改变 selector 在类的消息分发列表中的映射从而改变方法的掉用成为可能。
+例如：我们想要在一款 iOS app 中追踪每一个视图控制器被用户呈现了几次： 这可以通......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jerry on
+        2019-02-21
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
     <a href="/2018/11/03/VPS下搭建ownCloud云盘/">
         <h2 class="post-title">
             VPS下搭建ownCloud云盘
@@ -387,15 +457,15 @@ LAMP环境。ownCloud需要Web服务器，数据库和PHP才能正常工作。 �
                     <div class="tags">
                         
                             
-                            <a href="/tags/#iOS" title="iOS" rel="6">iOS</a>
+                        
+                            
+                        
+                            
+                            <a href="/tags/#iOS" title="iOS" rel="8">iOS</a>
                             
                         
                             
                             <a href="/tags/#代码混淆" title="代码混淆" rel="3">代码混淆</a>
-                            
-                        
-                            
-                        
                             
                         
                     </div>
