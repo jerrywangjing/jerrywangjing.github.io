@@ -97,14 +97,14 @@
 
                         
                         <li>
-                            <a href="/archives/">Archives</a>
+                            <a href="/tags/">Tags</a>
                         </li>
                         
                     
 
                         
                         <li>
-                            <a href="/tags/">Tags</a>
+                            <a href="/archives/">Archives</a>
                         </li>
                         
                     
@@ -203,7 +203,7 @@
 <p>现有的一种混淆方案就是通过对指定class name 方法名进行MD5加密（显示乱码），然后通过脚本代码将加密的方法名生成到指定的头文件中，然后再使用宏替换的方式将混淆过的方法名在代码预编译阶段进行替换，使方法名即便在<code>class-dump</code>后也只会显示加密后的乱码显示，造成代码不易读，从而实现一定程度上的混淆保护。</p>
 <h4 id="混淆方式"><a href="#混淆方式" class="headerlink" title="混淆方式"></a>混淆方式</h4><p>通过宏定义（#define）的方法名映射，进行字符串替换。这样做的好处在于可以将映射类别规整到一个头文件中，并<code>#import</code> 进项目的<code>prefixHeader.h</code> 预编译头文件中，方便在项目编译时进行全局替换。当不需要混淆的时候，则不导入该头文件即可。</p>
 <h4 id="混淆脚本"><a href="#混淆脚本" class="headerlink" title="混淆脚本"></a>混淆脚本</h4><p>下面的shell脚本引自的是“念茜-安全攻防”系列文章，实现思路是将敏感的方法名集中写入func.plist文件中，并逐一<code>#define</code>成随机字符串，最后写入一个.h头文件中。脚本代码如下：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><div class="line"><span class="meta">#</span>!/usr/bin/env bash</div><div class="line"></div><div class="line">TABLENAME=symbols</div><div class="line">SYMBOL_DB_FILE="symbols"</div><div class="line">STRING_SYMBOL_FILE="func.list"</div><div class="line">HEAD_FILE="$PROJECT_DIR/$PROJECT_NAME/codeObfuscation.h"</div><div class="line">export LC_CTYPE=C</div><div class="line"><span class="meta"></span></div><div class="line">#维护数据库方便日后作排重</div><div class="line">createTable()</div><div class="line">&#123;</div><div class="line">    echo "create table $TABLENAME(src text, des text);" | sqlite3 $SYMBOL_DB_FILE</div><div class="line">&#125;</div><div class="line"></div><div class="line">insertValue()</div><div class="line">&#123;</div><div class="line">    echo "insert into $TABLENAME values('$1' ,'$2');" | sqlite3 $SYMBOL_DB_FILE</div><div class="line">&#125;</div><div class="line"></div><div class="line">query()</div><div class="line">&#123;</div><div class="line">    echo "select * from $TABLENAME where src='$1';" | sqlite3 $SYMBOL_DB_FILE</div><div class="line">&#125;</div><div class="line"></div><div class="line">ramdomString()</div><div class="line">&#123;</div><div class="line">    openssl rand -base64 64 | tr -cd 'a-zA-Z' |head -c 16</div><div class="line">&#125;</div><div class="line"></div><div class="line">rm -f $SYMBOL_DB_FILE</div><div class="line">rm -f $HEAD_FILE</div><div class="line">createTable</div><div class="line"></div><div class="line">touch $HEAD_FILE</div><div class="line">echo '#ifndef Demo_codeObfuscation_h</div><div class="line"><span class="meta">#</span>define Demo_codeObfuscation_h' &gt;&gt; $HEAD_FILE</div><div class="line">echo "//confuse string at `date`" &gt;&gt; $HEAD_FILE</div><div class="line">cat "$STRING_SYMBOL_FILE" | while read -ra line; do</div><div class="line">    if [[ ! -z "$line" ]]; then</div><div class="line">        ramdom=`ramdomString`</div><div class="line">        echo $line $ramdom</div><div class="line">        insertValue $line $ramdom</div><div class="line">        echo "#define $line $ramdom" &gt;&gt; $HEAD_FILE</div><div class="line">    fi</div><div class="line">done</div><div class="line">echo "#endif" &gt;&gt; $HEAD_FILE</div><div class="line"></div><div class="line">sqlite3 $SYMBOL_DB_FILE .dump</div></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash">!/usr/bin/env bash</span></div><div class="line"></div><div class="line">TABLENAME=symbols</div><div class="line">SYMBOL_DB_FILE="symbols"</div><div class="line">STRING_SYMBOL_FILE="func.list"</div><div class="line">HEAD_FILE="$PROJECT_DIR/$PROJECT_NAME/codeObfuscation.h"</div><div class="line">export LC_CTYPE=C</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash">维护数据库方便日后作排重</span></div><div class="line">createTable()</div><div class="line">&#123;</div><div class="line">    echo "create table $TABLENAME(src text, des text);" | sqlite3 $SYMBOL_DB_FILE</div><div class="line">&#125;</div><div class="line"></div><div class="line">insertValue()</div><div class="line">&#123;</div><div class="line">    echo "insert into $TABLENAME values('$1' ,'$2');" | sqlite3 $SYMBOL_DB_FILE</div><div class="line">&#125;</div><div class="line"></div><div class="line">query()</div><div class="line">&#123;</div><div class="line">    echo "select * from $TABLENAME where src='$1';" | sqlite3 $SYMBOL_DB_FILE</div><div class="line">&#125;</div><div class="line"></div><div class="line">ramdomString()</div><div class="line">&#123;</div><div class="line">    openssl rand -base64 64 | tr -cd 'a-zA-Z' |head -c 16</div><div class="line">&#125;</div><div class="line"></div><div class="line">rm -f $SYMBOL_DB_FILE</div><div class="line">rm -f $HEAD_FILE</div><div class="line">createTable</div><div class="line"></div><div class="line">touch $HEAD_FILE</div><div class="line">echo '#ifndef Demo_codeObfuscation_h</div><div class="line"><span class="meta">#</span><span class="bash">define Demo_codeObfuscation_h<span class="string">' &gt;&gt; $HEAD_FILE</span></span></div><div class="line">echo "//confuse string at `date`" &gt;&gt; $HEAD_FILE</div><div class="line">cat "$STRING_SYMBOL_FILE" | while read -ra line; do</div><div class="line">    if [[ ! -z "$line" ]]; then</div><div class="line">        ramdom=`ramdomString`</div><div class="line">        echo $line $ramdom</div><div class="line">        insertValue $line $ramdom</div><div class="line">        echo "#define $line $ramdom" &gt;&gt; $HEAD_FILE</div><div class="line">    fi</div><div class="line">done</div><div class="line">echo "#endif" &gt;&gt; $HEAD_FILE</div><div class="line"></div><div class="line">sqlite3 $SYMBOL_DB_FILE .dump</div></pre></td></tr></table></figure>
 <h4 id="配置步骤"><a href="#配置步骤" class="headerlink" title="配置步骤"></a>配置步骤</h4><ol>
 <li><p>创建混淆脚本文件<code>confuse.sh</code>，拷贝上述脚本代码到文件中保存，然后把该脚本文件放到项目根目录。例如：<code>yourProject_path/</code>目录下。</p>
 </li>
@@ -212,7 +212,7 @@
 <p>然后将创建好的<code>func.list</code>文件同样拷贝到项目根目录，也可以将<code>confuse.sh</code> 和<code>func.list</code>文件都添加进项目目录中，方便日后查看与维护，Xcode 左上角点击<code>File --&gt; Add Files to &quot;xxx&quot;</code>添加即可。</p>
 </li>
 <li><p>配置<code>Build Phases</code>脚本</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><div class="line">// 脚本代码</div><div class="line"><span class="meta">$</span>PROJECT_DIR/confuse.sh</div></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="code"><pre><div class="line">// 脚本代码</div><div class="line"><span class="meta">$</span><span class="bash">PROJECT_DIR/confuse.sh</span></div></pre></td></tr></table></figure>
 <p>操作步骤如下图：</p>
 <p><img src="https://i.loli.net/2019/02/19/5c6bcd8ccbd30.png" alt="img1"></p>
 </li>
@@ -284,7 +284,7 @@
                     
                     
                         <li class="next">
-                            <a href="/2019/02/28/对象、类、元类、isa指针之间的爱恨情仇/" data-toggle="tooltip" data-placement="top" title="对象、类、元类、isa指针之间的爱恨情仇">Next Post &rarr;</a>
+                            <a href="/2018/11/03/VPS下搭建ownCloud云盘/" data-toggle="tooltip" data-placement="top" title="VPS下搭建ownCloud云盘">Next Post &rarr;</a>
                         </li>
                     
                 </ul>

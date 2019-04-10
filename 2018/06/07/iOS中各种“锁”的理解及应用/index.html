@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A developer">
+    <meta name="keyword"  content="Jerry, wangjing, Jerry&#39;s Blog, 博客, 个人博客, iOS, 移动互联网, 开发">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>
+        
+          iOS中各种“锁”的理解及应用 - Jerry的博客 | Jerry&#39;s Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://jerrywangjing.github.io/2018/06/07/iOS中各种“锁”的理解及应用/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Jerry&#39;s Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archives/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    
+<!-- Image to hack wechat -->
+<!-- <img src="https://jerrywangjing.github.io/img/icon_wechat.png" width="0" height="0"> -->
+<!-- <img src="{{ site.baseurl }}/{% if page.header-img %}{{ page.header-img }}{% else %}{{ site.header-img }}{% endif %}" width="0" height="0"> -->
+
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        background-image: url('/img/home-bg.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                          <a class="tag" href="/tags/#iOS" title="iOS">iOS</a>
+                        
+                    </div>
+                    <h1>iOS中各种“锁”的理解及应用</h1>
+                    <h2 class="subheading"></h2>
+                    <span class="meta">
+                        Posted by Jerry on
+                        2018-06-07
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>通常在一般的iOS应用开发中会很少碰到使用“锁”的业务逻辑，但是在需要使用多线程技术，解决大多数场景写的业务逻辑时，会使用到线程锁来保证临界数据的读写安全性。当然，“锁”的概念在计算机科学及应用中也是举足轻重的，对于要写出高质量、高性能、安全可靠的代码来说，也是非常重要的。</p>
+<h3 id="预备知识"><a href="#预备知识" class="headerlink" title="预备知识"></a>预备知识</h3><ul>
+<li><p><strong>线程调度</strong></p>
+<p>计算机通常只有一个CPU,在任意时刻只能执行一条机器指令,每个线程只有获得CPU的使用权才能执行指令.所谓多线程的并发运行,其实是指从宏观上看,各个线程轮流获得CPU的使用权,分别执行各自的任务.在运行池中,会有多个处于就绪状态的线程在等待CPU,JAVA虚拟机的一项任务就是负责线程的调度,线程调度是指按照特定机制为多个线程分配CPU的使用权.线程调度有两种调度模式：</p>
+<ul>
+<li>分时调度模型，分时调度模型是指让所有的线程轮流获得 CPU 的使用权，并且平均分配每个线程占用的 CPU 的时间片。</li>
+<li>抢占式调度模型，指优先让可运行池中优先级高的线程占用 CPU，如果可运行池中的线程优先级相同，那么就随机选择一个线程，使其占用 CPU。处于运行状态的线程会一直运行，直至它不得不放弃 CPU</li>
+</ul>
+</li>
+<li><p><strong>时间片轮转算法</strong></p>
+<ul>
+<li><p><strong>时间片</strong>：（timeslice）是分时操作系统分配给每个正在运行的<a href="https://zh.wikipedia.org/wiki/%E8%BF%9B%E7%A8%8B" target="_blank" rel="noopener">进程</a>微观上的一段CPU时间（在抢占<a href="https://zh.wikipedia.org/wiki/%E5%86%85%E6%A0%B8" target="_blank" rel="noopener">内核</a>中是：从进程开始运行直到被抢占的时间）。现代操作系统（如：<a href="https://zh.wikipedia.org/wiki/Windows" target="_blank" rel="noopener">Windows</a>、<a href="https://zh.wikipedia.org/wiki/Linux" target="_blank" rel="noopener">Linux</a>、<a href="https://zh.wikipedia.org/wiki/Mac_OS_X" target="_blank" rel="noopener">Mac OS X</a>等）允许同时运行多个进程 —— 例如，你可以在打开音乐播放器听音乐的同时用<a href="https://zh.wikipedia.org/wiki/%E6%B5%8F%E8%A7%88%E5%99%A8" target="_blank" rel="noopener">浏览器</a>浏览<a href="https://zh.wikipedia.org/wiki/%E7%BD%91%E9%A1%B5" target="_blank" rel="noopener">网页</a>并下载文件。事实上，由于一台<a href="https://zh.wikipedia.org/wiki/%E8%AE%A1%E7%AE%97%E6%9C%BA" target="_blank" rel="noopener">计算机</a>通常只有一个<a href="https://zh.wikipedia.org/wiki/CPU" target="_blank" rel="noopener">CPU</a>，所以永远不可能真正地同时运行多个任务。这些进程“看起来像”同时运行的，实则是轮番穿插地运行，由于时间片通常很短（在<a href="https://zh.wikipedia.org/wiki/Linux" target="_blank" rel="noopener">Linux</a>上为5ms－800ms），用户不会感觉到。– 维基百科</p>
+<p>时间片由<a href="https://zh.wikipedia.org/wiki/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F" target="_blank" rel="noopener">操作系统</a>内核的<a href="https://zh.wikipedia.org/w/index.php?title=%E8%B0%83%E5%BA%A6%E7%A8%8B%E5%BA%8F&amp;action=edit&amp;redlink=1" target="_blank" rel="noopener">调度程序</a>分配给每个进程。首先，内核会给每个进程分配相等的初始时间片，然后每个进程轮番地执行相应的时间，当所有进程都处于时间片耗尽的状态时，内核会重新为每个进程计算并分配时间片，如此往复。</p>
+</li>
+<li><p><strong>分配算法</strong>：现代操作系统再管理普通线程时，通常采用时间片轮转算法，每个线程会被分配一段时间片，通常在 10-100 毫秒左右，当线程使用完自己的时间片之后j就被会操作系统挂起，放入等待队列中，等待下一次被分配时间片。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>原子操作</strong></p>
+<p>狭义上的原子操作表示一条不可打断的操作，也就是说线程在执行操作过程中，不会被操作系统挂起，而是一定会执行完。在单处理器环境下，一条汇编指令显然是原子操作，因为中断也要通过指令来实现。</p>
+<p>然而在多处理器的情况下，能够被多个处理器同时执行的操作任然算不上原子操作。因此，真正的原子操作必须由硬件提供支持，比如 x86 平台上如果在指令前面加上 “LOCK” 前缀，对应的机器码在执行时会把总线锁住，使得其他 CPU不能再执行相同操作，从而从硬件层面确保了操作的原子性。</p>
+<p>这些非常底层的概念无需完全掌握，我们只要知道上述申请锁的过程，可以用一个原子性操作 <code>test_and_set</code> 来完成，它用伪代码可以这样表示:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">bool</span> <span class="title">test_and_set</span> <span class="params">(<span class="keyword">bool</span> *target)</span> </span>&#123;  </div><div class="line">    <span class="keyword">bool</span> rv = *target; </div><div class="line">    *target = TRUE; </div><div class="line">    <span class="keyword">return</span> rv;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这段代码的作用是把 target 的值设置为 1，并返回原来的值。当然，在具体实现时，它通过一个原子性的指令来完成。  —— 参考bestswifter博客《深入理解iOS开发中的锁》</p>
+</li>
+<li><p><strong>自旋锁和互斥锁</strong></p>
+<p>都属于CPU时间分片算法下的实现保护共享资源的一种机制。都实现互斥操作，加锁后仅允许一个访问者。<br>区别在于自旋锁不会使线程进入wait状态，而通过轮训不停查看是否该自旋锁的持有者已经释放的锁；对应的，互斥锁在出现锁已经被占用的情况会进入wait状态，CPU会当即切换时间片。</p>
+<blockquote>
+<p>参考资料《自旋锁和互斥锁的区别》：<a href="https://blog.csdn.net/susidian/article/details/51068858" target="_blank" rel="noopener">https://blog.csdn.net/susidian/article/details/51068858</a></p>
+</blockquote>
+</li>
+</ul>
+<h3 id="各种锁的应用及性能对比"><a href="#各种锁的应用及性能对比" class="headerlink" title="各种锁的应用及性能对比"></a>各种锁的应用及性能对比</h3><p>下面讨论iOS开发中常见的几种锁。包括锁的简单介绍及使用，锁的特性及加解锁性能对比。业界大神YYKit的作者ibireme 已经在其博客中讨论了各种锁的性能，且做出一个速度由快至慢的排名进行对比。图示如下：</p>
+<p><img src="http://images.bestswifter.com/lock_benchmark.png" alt="img1"></p>
+<blockquote>
+<p>需要说明的是，加解锁速度不表示锁的效率，只表示加解锁操作在执行时的复杂程度，下文会通过具体的例子来解释。</p>
+</blockquote>
+<h3 id="OSSpinLock（自旋锁）"><a href="#OSSpinLock（自旋锁）" class="headerlink" title="OSSpinLock（自旋锁）"></a>OSSpinLock（自旋锁）</h3><p>文中指出，其中性能最好的OSSpinLock(自旋锁)，已经不再安全了，主要原因发生在低优先级线程拿到锁时，高优先级线程进入忙等(busy-wait)状态，消耗大量 CPU 时间，从而导致低优先级线程拿不到 CPU 时间，也就无法完成任务并释放锁。这种问题被称为<strong>优先级反转</strong>。</p>
+<p>为什么忙等会导致低优先级线程拿不到时间片？这还得从操作系统的线程调度说起。</p>
+<p>现代操作系统在管理普通线程时，通常采用时间片轮转算法(Round Robin，简称 RR)。每个线程会被分配一段时间片(quantum)，通常在 10-100 毫秒左右。当线程用完属于自己的时间片以后，就会被操作系统挂起，放入等待队列中，直到下一次被分配时间片。</p>
+<p><strong>实现原理</strong></p>
+<p>自旋锁的目的是为了确保临界区只有一个线程可以访问，它的使用可以用下面这段伪代码来描述:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><div class="line"><span class="keyword">do</span> &#123;  </div><div class="line">    Acquire Lock  <span class="comment">// 获取锁</span></div><div class="line">        Critical section  <span class="comment">// 临界区</span></div><div class="line">    Release Lock  <span class="comment">// 释放锁		</span></div><div class="line">        Reminder section <span class="comment">// 不需要锁保护的代码</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在 Acquire Lock 这一步，我们申请加锁，目的是为了保护临界区(Critical Section) 中的代码不会被多个线程执行。</p>
+<p>自旋锁的实现思路很简单，理论上来说只要定义一个全局变量，用来表示锁的可用情况即可，伪代码如下:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><div class="line"><span class="keyword">bool</span> lock = <span class="literal">false</span>; <span class="comment">// 一开始没有锁上，任何线程都可以申请锁  </span></div><div class="line"><span class="keyword">do</span> &#123;  </div><div class="line">    <span class="keyword">while</span>(lock); <span class="comment">// 如果 lock 为 true 就一直死循环，相当于申请锁</span></div><div class="line">    lock = <span class="literal">true</span>; <span class="comment">// 挂上锁，这样别的线程就无法获得锁</span></div><div class="line">        Critical section  <span class="comment">// 临界区</span></div><div class="line">    lock = <span class="literal">false</span>; <span class="comment">// 相当于释放锁，这样别的线程可以进入临界区</span></div><div class="line">        Reminder section <span class="comment">// 不需要锁保护的代码        </span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>这段代码存在一个问题: 如果一开始有多个线程同时执行 while 循环，他们都不会在这里卡住，而是继续执行，这样就无法保证锁的可靠性了。解决思路也很简单，只要确保申请锁的过程是原子操作即可。</p>
+<p>至此，自旋锁的实现原理就很清楚了，在申请锁的过程中确保原子操作，代码如下：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><div class="line"><span class="keyword">bool</span> lock = <span class="literal">false</span>; <span class="comment">// 一开始没有锁上，任何线程都可以申请锁  </span></div><div class="line"><span class="keyword">do</span> &#123;  </div><div class="line">    <span class="keyword">while</span>(test_and_set(&amp;lock); <span class="comment">// test_and_set 是一个原子操作</span></div><div class="line">        Critical section  <span class="comment">// 临界区</span></div><div class="line">    lock = <span class="literal">false</span>; <span class="comment">// 相当于释放锁，这样别的线程可以进入临界区</span></div><div class="line">        Reminder section <span class="comment">// 不需要锁保护的代码        </span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>如果临界区的执行时间过长，使用自旋锁不是个好主意</strong>。之前我们介绍过时间片轮转算法，线程在多种情况下会退出自己的时间片。其中一种是用完了时间片的时间，被操作系统强制抢占。除此以外，当线程进行 I/O 操作，或进入睡眠状态时，都会主动让出时间片。显然在 while 循环中，线程处于忙等状态，白白浪费 CPU 时间，最终因为超时被操作系统抢占时间片。如果临界区执行时间较长，比如是文件读写，这种忙等是毫无必要的。</p>
+<p><strong>自旋锁使用范例</strong></p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line"><span class="comment">// 需要导入的头文件</span></div><div class="line"></div><div class="line"><span class="meta">#import <span class="meta-string">&lt;libkern/OSAtomic.h&gt;</span></span></div><div class="line"><span class="meta">#import <span class="meta-string">&lt;os/lock.h&gt;</span></span></div><div class="line"><span class="meta">#import <span class="meta-string">&lt;AddressBook/AddressBook.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="comment">// 自旋锁 实现</span></div><div class="line"></div><div class="line">- (<span class="keyword">void</span>)OSSpinLock &#123;</div><div class="line">    <span class="keyword">if</span> (@available(iOS <span class="number">10.0</span>, *)) &#123;  <span class="comment">// iOS 10以后解决了优先级反转问题</span></div><div class="line">        </div><div class="line">        os_unfair_lock_t unfairLock = &amp;(OS_UNFAIR_LOCK_INIT);</div><div class="line">        <span class="built_in">NSLog</span>(<span class="string">@"线程1 准备上锁"</span>);</div><div class="line">        os_unfair_lock_lock(unfairLock);</div><div class="line">        sleep(<span class="number">4</span>);</div><div class="line">        <span class="built_in">NSLog</span>(<span class="string">@"线程1执行"</span>);</div><div class="line">        os_unfair_lock_unlock(unfairLock);</div><div class="line">        <span class="built_in">NSLog</span>(<span class="string">@"线程1 解锁成功"</span>);</div><div class="line"></div><div class="line">    &#125; <span class="keyword">else</span> &#123; <span class="comment">// 会造成优先级反转，不建议使用</span></div><div class="line">        __block OSSpinLock oslock = OS_SPINLOCK_INIT;</div><div class="line">        </div><div class="line">        <span class="comment">//线程2</span></div><div class="line">        <span class="built_in">dispatch_async</span>(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, <span class="number">0</span>), ^&#123;</div><div class="line">            <span class="built_in">NSLog</span>(<span class="string">@"线程2 befor lock"</span>);</div><div class="line">            OSSpinLockLock(&amp;oslock);</div><div class="line">            <span class="built_in">NSLog</span>(<span class="string">@"线程2执行"</span>);</div><div class="line">            sleep(<span class="number">3</span>);</div><div class="line">            OSSpinLockUnlock(&amp;oslock);</div><div class="line">            <span class="built_in">NSLog</span>(<span class="string">@"线程2 unlock"</span>);</div><div class="line">        &#125;);</div><div class="line">        </div><div class="line">        <span class="comment">//线程1</span></div><div class="line">        <span class="built_in">dispatch_async</span>(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, <span class="number">0</span>), ^&#123;</div><div class="line">            <span class="built_in">NSLog</span>(<span class="string">@"线程1 befor lock"</span>);</div><div class="line">            OSSpinLockLock(&amp;oslock);</div><div class="line">            <span class="built_in">NSLog</span>(<span class="string">@"线程1 sleep"</span>);</div><div class="line">            sleep(<span class="number">3</span>);</div><div class="line">            <span class="built_in">NSLog</span>(<span class="string">@"线程1执行"</span>);</div><div class="line">            OSSpinLockUnlock(&amp;oslock);</div><div class="line">            <span class="built_in">NSLog</span>(<span class="string">@"线程1 unlock"</span>);</div><div class="line">        &#125;);</div><div class="line">        </div><div class="line">        <span class="comment">// 可以看出不同的队列优先级，执行的顺序不同，优先级越高，越早被执行</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="dispatch-semaphore-t（信号量）"><a href="#dispatch-semaphore-t（信号量）" class="headerlink" title="dispatch_semaphore_t（信号量）"></a>dispatch_semaphore_t（信号量）</h3><p>信号量在GCD多线程技术中是一个重要的角色，在保证性能的情况下，可实现多线程同步功能，也可以通过初始化value=1，来实现加锁。</p>
+<p>在实现加锁的过程中，如果线程1已经获取了锁，并在执行任务过程中，其他线程会被阻塞，直到线程1任务完成释放锁。</p>
+<p>YY大神推荐使用信号量dispatch_semaphore作为自旋锁的替代方案。</p>
+<p><strong>实现原理</strong></p>
+<p>信号量 <code>dispatch_semaphore_t</code> 的实现原理，它最终会调用到 <code>sem_wait</code> 方法，这个方法在 glibc 中被实现如下:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">sem_wait</span> <span class="params">(<span class="keyword">sem_t</span> *sem)</span> </span>&#123;  </div><div class="line">  <span class="keyword">int</span> *futex = (<span class="keyword">int</span> *) sem;</div><div class="line">  <span class="keyword">if</span> (atomic_decrement_if_positive (futex) &gt; <span class="number">0</span>)</div><div class="line">    <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">  <span class="keyword">int</span> err = lll_futex_wait (futex, <span class="number">0</span>);</div><div class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</div><div class="line">)</div></pre></td></tr></table></figure>
+<p>首先会把信号量的值减一，并判断是否大于零。如果大于零，说明不用等待，所以立刻返回。具体的等待操作在 <code>lll_futex_wait</code> 函数中实现，<strong>lll</strong> 是 low level lock 的简称。这个函数通过汇编代码实现，调用到 <code>SYS_futex</code> 这个系统调用，使线程进入睡眠状态，主动让出时间片，这个函数在互斥锁的实现中，也有可能被用到。</p>
+<p>主动让出时间片并不总是代表效率高。让出时间片会导致操作系统切换到另一个线程，这种上下文切换通常需要 10 微秒左右，而且至少需要两次切换。如果等待时间很短，比如只有几个微秒，忙等就比线程睡眠更高效。</p>
+<p>可以看到，自旋锁和信号量的实现都非常简单，这也是两者的加解锁耗时分别排在第一和第二的原因。再次强调，加解锁耗时不能准确反应出锁的效率(比如时间片切换就无法发生)，它只能从一定程度上衡量锁的实现复杂程度。</p>
+<p><strong>应用示例</strong></p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line"><span class="comment">// 创建sem ,value 设置为1</span></div><div class="line">dispatch_semaphore_t signal = dispatch_semaphore_create(<span class="number">1</span>);</div><div class="line"><span class="comment">// 设置超时时间5s，当超过5s会自动释放锁</span></div><div class="line">dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, <span class="number">5.0</span>f * <span class="built_in">NSEC_PER_SEC</span>);</div><div class="line">    </div><div class="line"><span class="comment">//线程1</span></div><div class="line"><span class="built_in">dispatch_async</span>(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, <span class="number">0</span>), ^&#123;</div><div class="line">   <span class="built_in">NSLog</span>(<span class="string">@"线程1 holding"</span>);</div><div class="line">   dispatch_semaphore_wait(signal, timeout); <span class="comment">//signal 值 -1</span></div><div class="line">   <span class="built_in">NSLog</span>(<span class="string">@"线程1 sleep"</span>);</div><div class="line">   sleep(<span class="number">4</span>);</div><div class="line">   <span class="built_in">NSLog</span>(<span class="string">@"线程1"</span>);</div><div class="line">   dispatch_semaphore_signal(signal); <span class="comment">//signal 值 +1</span></div><div class="line">   <span class="built_in">NSLog</span>(<span class="string">@"线程1 post singal"</span>);</div><div class="line">&#125;);</div><div class="line">    </div><div class="line"><span class="comment">//线程2</span></div><div class="line"><span class="built_in">dispatch_async</span>(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, <span class="number">0</span>), ^&#123;</div><div class="line">   <span class="built_in">NSLog</span>(<span class="string">@"线程2 holding"</span>);</div><div class="line">   dispatch_semaphore_wait(signal, timeout);</div><div class="line">   <span class="built_in">NSLog</span>(<span class="string">@"线程2 sleep"</span>);</div><div class="line">   sleep(<span class="number">4</span>);</div><div class="line">   <span class="built_in">NSLog</span>(<span class="string">@"线程2"</span>);</div><div class="line">   dispatch_semaphore_signal(signal);</div><div class="line">   <span class="built_in">NSLog</span>(<span class="string">@"线程2 post signal"</span>);</div><div class="line">&#125;);</div><div class="line"></div><div class="line"><span class="comment">// 代码执行结果：</span></div><div class="line"><span class="keyword">class</span>:AppDelegate+AppService.m line:<span class="number">162</span> msg:线程<span class="number">2</span> holding</div><div class="line"><span class="keyword">class</span>:AppDelegate+AppService.m line:<span class="number">151</span> msg:线程<span class="number">1</span> holding</div><div class="line"><span class="keyword">class</span>:AppDelegate+AppService.m line:<span class="number">153</span> msg:线程<span class="number">1</span> sleep</div><div class="line"><span class="keyword">class</span>:AppDelegate+AppService.m line:<span class="number">155</span> msg:线程<span class="number">1</span></div><div class="line"><span class="keyword">class</span>:AppDelegate+AppService.m line:<span class="number">164</span> msg:线程<span class="number">2</span> sleep</div><div class="line"><span class="keyword">class</span>:AppDelegate+AppService.m line:<span class="number">157</span> msg:线程<span class="number">1</span> post singal</div></pre></td></tr></table></figure>
+<h3 id="Pthread-mutex（互斥锁）"><a href="#Pthread-mutex（互斥锁）" class="headerlink" title="Pthread_mutex（互斥锁）"></a>Pthread_mutex（互斥锁）</h3><p>pthread 表示 POSIX thread，定义了一组跨平台的线程相关的 API，pthread_mutex 表示互斥锁。互斥锁的实现原理与信号量非常相似，不是使用<strong>忙等</strong>，而是阻塞线程并睡眠，需要进行上下文切换，性能不及信号量。</p>
+<p><strong>实现原理</strong></p>
+<p>互斥锁在申请锁时，调用了 <code>pthread_mutex_lock</code> 方法，它在不同的系统上实现各有不同，有时候它的内部是使用信号量来实现，即使不用信号量，也会调用到 <code>lll_futex_wait</code> 函数，从而导致线程休眠。</p>
+<p>上文说到如果临界区很短，忙等的效率也许更高，所以在有些版本的实现中，会首先尝试一定次数(比如 1000 次)的 test<em>and</em>test，这样可以在错误使用互斥锁时提高性能。</p>
+<p>另外，由于 <code>pthread_mutex</code> 有多种类型，可以支持递归锁等，因此在申请加锁时，需要对锁的类型加以判断，这也就是为什么它和信号量的实现类似，但效率略低的原因。</p>
+<p><strong>常见用法</strong></p>
+<p>互斥锁的常见用法如下:</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line"><span class="meta">#import <span class="meta-string">&lt;pthread.h&gt;</span>   // 需要导入头文件</span></div><div class="line"></div><div class="line">pthread_mutexattr_t attr;  </div><div class="line">pthread_mutexattr_init(&amp;attr);  </div><div class="line">pthread_mutexattr_settype(&amp;attr, PTHREAD_MUTEX_NORMAL);  <span class="comment">// 定义锁的属性</span></div><div class="line"></div><div class="line">pthread_mutex_t mutex;  </div><div class="line">pthread_mutex_init(&amp;mutex, &amp;attr) <span class="comment">// 创建锁</span></div><div class="line"></div><div class="line">pthread_mutex_lock(&amp;mutex); <span class="comment">// 申请锁  </span></div><div class="line">    <span class="comment">// 临界区</span></div><div class="line">pthread_mutex_unlock(&amp;mutex); <span class="comment">// 释放锁</span></div></pre></td></tr></table></figure>
+<p>对于 pthread_mutex 来说，它的用法和之前没有太大的改变，比较重要的是锁的类型，可以有 <code>PTHREAD_MUTEX_NORMAL</code>、<code>PTHREAD_MUTEX_ERRORCHECK</code>、<code>PTHREAD_MUTEX_RECURSIVE</code> 等等，具体的特性就不做解释了，网上有很多相关资料。</p>
+<p>一般情况下，一个线程只能申请一次锁，也只能在获得锁的情况下才能释放锁，多次申请锁或释放未获得的锁都会导致崩溃。假设在已经获得锁的情况下再次申请锁，线程会因为等待锁的释放而进入睡眠状态，因此就不可能再释放锁，从而导致死锁。</p>
+<p>然而这种情况经常会发生，比如某个函数申请了锁，在临界区内又递归调用了自己。辛运的是 <code>pthread_mutex</code> 支持递归锁，也就是允许一个线程递归的申请锁，只要把 attr 的类型改成 <code>PTHREAD_MUTEX_RECURSIVE</code> 即可。</p>
+<p><strong>YTKNetworking</strong> 中就有使用这种锁方式：</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line">pthread_mutex_t lock;    <span class="comment">// 创建 lock</span></div><div class="line"></div><div class="line"><span class="comment">// 宏定义，加解锁方法</span></div><div class="line"><span class="meta">#define Lock() pthread_mutex_lock(&amp;_lock)        </span></div><div class="line"><span class="meta">#define Unlock() pthread_mutex_unlock(&amp;_lock)</span></div><div class="line"></div><div class="line"><span class="comment">/* 使用范例 */</span></div><div class="line"></div><div class="line"><span class="comment">//添加 request 到字典</span></div><div class="line">- (<span class="keyword">void</span>)addRequestToRecord:(YTKBaseRequest *)request &#123;</div><div class="line">    Lock();</div><div class="line">    _requestsRecord[@(request.requestTask.taskIdentifier)] = request;</div><div class="line">    Unlock();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">//从字典中移除指定的 request</span></div><div class="line">- (<span class="keyword">void</span>)removeRequestFromRecord:(YTKBaseRequest *)request &#123;</div><div class="line">    Lock();</div><div class="line">    [_requestsRecord removeObjectForKey:@(request.requestTask.taskIdentifier)];</div><div class="line">    YTKLog(<span class="string">@"Request queue size = %zd"</span>, [_requestsRecord count]);</div><div class="line">    Unlock();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="NSLock"><a href="#NSLock" class="headerlink" title="NSLock"></a>NSLock</h3><p>NSLock 是 Objective-C 以对象的形式暴露给开发者的一种锁，它的实现非常简单，通过宏，定义了 <code>lock</code> 方法:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span>    MLOCK \</span></div><div class="line">- (void) lock\</div><div class="line">&#123;\</div><div class="line">  int err = pthread_mutex_lock(&amp;_mutex);\</div><div class="line">  <span class="comment">// 错误处理 ……</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><code>NSLock</code> 只是在内部封装了一个 <code>pthread_mutex</code>，属性为 <code>PTHREAD_MUTEX_ERRORCHECK</code>，它会损失一定性能换来错误提示。</p>
+<p>这里使用宏定义的原因是，OC 内部还有其他几种锁，他们的 lock 方法都是一模一样，仅仅是内部 <code>pthread_mutex</code> 互斥锁的类型不同。通过宏定义，可以简化方法的定义。</p>
+<p><code>NSLock</code> 比 <code>pthread_mutex</code> 略慢的原因在于它需要经过方法调用，同时由于缓存的存在，多次方法调用不会对性能产生太大的影响。</p>
+<p><strong>应用范例</strong></p>
+<p>AFNetworking 中就是用的<code>NSLock</code>方式:</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line"><span class="keyword">@property</span> (<span class="keyword">readwrite</span>, <span class="keyword">nonatomic</span>, <span class="keyword">strong</span>) <span class="built_in">NSLock</span> *lock;  <span class="comment">// 声明锁</span></div><div class="line"></div><div class="line"><span class="comment">// 初始化锁</span></div><div class="line"><span class="keyword">self</span>.lock = [[<span class="built_in">NSLock</span> alloc] init];</div><div class="line"><span class="keyword">self</span>.lock.name = AFURLSessionManagerLockName;</div><div class="line"><span class="comment">// 应用</span></div><div class="line">- (<span class="keyword">void</span>)removeDelegateForTask:(<span class="built_in">NSURLSessionTask</span> *)task &#123;</div><div class="line">    <span class="built_in">NSParameterAssert</span>(task);</div><div class="line"></div><div class="line">    AFURLSessionManagerTaskDelegate *delegate = [<span class="keyword">self</span> delegateForTask:task];</div><div class="line">    [<span class="keyword">self</span>.lock lock];</div><div class="line">    [delegate cleanUpProgressForTask:task];</div><div class="line">    [<span class="keyword">self</span> removeNotificationObserverForTask:task];</div><div class="line">    [<span class="keyword">self</span>.mutableTaskDelegatesKeyedByTaskIdentifier removeObjectForKey:@(task.taskIdentifier)];</div><div class="line">    [<span class="keyword">self</span>.lock unlock];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="NSCondition"><a href="#NSCondition" class="headerlink" title="NSCondition"></a>NSCondition</h3><p><code>NSCondition</code> 的底层是通过条件变量(condition variable) <code>pthread_cond_t</code> 来实现的。条件变量有点像信号量，提供了线程阻塞与信号机制，因此可以用来阻塞某个线程，并等待某个数据就绪，随后唤醒线程，比如常见的生产者-消费者模式。</p>
+<p><strong>实现原理</strong></p>
+<p><code>NSCondition</code> 其实是封装了一个互斥锁和条件变量， 它把前者的 <code>lock</code> 方法和后者的 <code>wait/signal</code> 统一在 <code>NSCondition</code> 对象中，暴露给使用者:</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line">- (<span class="keyword">void</span>) signal &#123;</div><div class="line">  pthread_cond_signal(&amp;_condition);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 其实这个函数是通过宏来定义的，展开后就是这样</span></div><div class="line">- (<span class="keyword">void</span>) lock &#123;</div><div class="line">  <span class="keyword">int</span> err = pthread_mutex_lock(&amp;_mutex);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>它的加解锁过程与 <code>NSLock</code> 几乎一致，理论上来说耗时也应该一样(实际测试也是如此)。在图中显示它耗时略长，我猜测有可能是测试者在每次加解锁的前后还附带了变量的初始化和销毁操作。</p>
+<p><strong>条件锁使用</strong></p>
+<p>很多介绍 <code>pthread_cond_t</code> 的文章都会提到，它需要与互斥锁配合使用:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">consumer</span> <span class="params">()</span> </span>&#123; <span class="comment">// 消费者  </span></div><div class="line">    pthread_mutex_lock(&amp;mutex);</div><div class="line">    <span class="keyword">while</span> (data == <span class="literal">NULL</span>) &#123;</div><div class="line">        pthread_cond_wait(&amp;condition_variable_signal, &amp;mutex); <span class="comment">// 等待数据</span></div><div class="line">    &#125;</div><div class="line">    <span class="comment">// --- 有新的数据，以下代码负责处理 ↓↓↓↓↓↓</span></div><div class="line">    <span class="comment">// temp = data;</span></div><div class="line">    <span class="comment">// --- 有新的数据，以上代码负责处理 ↑↑↑↑↑↑</span></div><div class="line">    pthread_mutex_unlock(&amp;mutex);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">producer</span> <span class="params">()</span> </span>&#123;  </div><div class="line">    pthread_mutex_lock(&amp;mutex);</div><div class="line">    <span class="comment">// 生产数据</span></div><div class="line">    pthread_cond_signal(&amp;condition_variable_signal); <span class="comment">// 发出信号给消费者，告诉他们有了新的数据</span></div><div class="line">    pthread_mutex_unlock(&amp;mutex);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>自然我们会有疑问:“如果不用互斥锁，只用条件变量会有什么问题呢？”。问题在于，<code>temp = data;</code> 这段代码不是线程安全的，也许在你把 data 读出来以前，已经有别的线程修改了数据。因此我们需要保证消费者拿到的数据是线程安全的。</p>
+<p>wait 方法除了会被 signal 方法唤醒，有时还会被虚假唤醒，所以需要这里 while 循环中的判断来做二次确认。</p>
+<h3 id="NSConditionLock（条件锁）"><a href="#NSConditionLock（条件锁）" class="headerlink" title="NSConditionLock（条件锁）"></a>NSConditionLock（条件锁）</h3><p><code>NSConditionLock</code> 借助 <code>NSCondition</code> 来实现，它的本质就是一个生产者-消费者模型。“条件被满足”可以理解为生产者提供了新的内容。<code>NSConditionLock</code> 的内部持有一个 <code>NSCondition</code> 对象，以及 <code>_condition_value</code> 属性，在初始化时就会对这个属性进行赋值:</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line"><span class="comment">// 简化版代码</span></div><div class="line">- (<span class="keyword">id</span>) initWithCondition: (<span class="built_in">NSInteger</span>)value &#123;</div><div class="line">    <span class="keyword">if</span> (<span class="literal">nil</span> != (<span class="keyword">self</span> = [<span class="keyword">super</span> init])) &#123;</div><div class="line">        _condition = [<span class="built_in">NSCondition</span> new]</div><div class="line">        _condition_value = value;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">self</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>它的 <code>lockWhenCondition</code> 方法其实就是消费者方法:</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line">- (<span class="keyword">void</span>) lockWhenCondition: (<span class="built_in">NSInteger</span>)value &#123;</div><div class="line">    [_condition lock];</div><div class="line">    <span class="keyword">while</span> (value != _condition_value) &#123;</div><div class="line">        [_condition wait];</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>对应的 <code>unlockWhenCondition</code> 方法则是生产者，使用了 <code>broadcast</code> 方法通知了所有的消费者:</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line">- (<span class="keyword">void</span>) unlockWithCondition: (<span class="built_in">NSInteger</span>)value &#123;</div><div class="line">    _condition_value = value;</div><div class="line">    [_condition broadcast];</div><div class="line">    [_condition unlock];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="NSRecursiveLock（递归锁）"><a href="#NSRecursiveLock（递归锁）" class="headerlink" title="NSRecursiveLock（递归锁）"></a>NSRecursiveLock（递归锁）</h3><p>上文已经说过，递归锁也是通过 <code>pthread_mutex_lock</code> 函数来实现，在函数内部会判断锁的类型，如果显示是递归锁，就允许递归调用，仅仅将一个计数器加一，锁的释放过程也是同理。</p>
+<p><code>NSRecursiveLock</code> 与 <code>NSLock</code> 的区别在于内部封装的 <code>pthread_mutex_t</code> 对象的类型不同，前者的类型为 <code>PTHREAD_MUTEX_RECURSIVE</code>。</p>
+<h3 id="synchronized（同步锁）"><a href="#synchronized（同步锁）" class="headerlink" title="@synchronized（同步锁）"></a>@synchronized（同步锁）</h3><p>这其实是一个 OC 层面的锁， 主要是通过牺牲性能换来语法上的简洁与可读。</p>
+<p>我们知道 @synchronized 后面需要紧跟一个 OC 对象，它实际上是把这个对象当做锁来使用。这是通过一个哈希表来实现的，OC 在底层使用了一个互斥锁的数组(你可以理解为锁池)，通过对对象去哈希值来得到对应的互斥锁。</p>
+<p>在 SDWebImage 中用的就是这种方式：</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line">- (<span class="keyword">void</span>)cancel &#123;</div><div class="line">    <span class="keyword">@synchronized</span> (<span class="keyword">self</span>) &#123;</div><div class="line">        [<span class="keyword">self</span> cancelInternal];</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>文章梳理了在iOS开发中用到的各种锁，简单介绍了其实现原理、不同锁的应用场景和注意事项。希望对看到这篇文章的小伙伴有所帮助。</p>
+<h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4><blockquote>
+<p><a href="https://blog.ibireme.com/2016/01/16/spinlock_is_unsafe_in_ios/" target="_blank" rel="noopener">https://blog.ibireme.com/2016/01/16/spinlock_is_unsafe_in_ios/</a></p>
+<p><a href="https://blog.csdn.net/susidian/article/details/51068858" target="_blank" rel="noopener">https://blog.csdn.net/susidian/article/details/51068858</a></p>
+</blockquote>
+
+
+                <hr>
+
+                
+
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/2018/07/08/离屏渲染知多少/" data-toggle="tooltip" data-placement="top" title="离屏渲染知多少?">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/2018/05/28/对象、类、元类、isa指针之间的爱恨情仇/" data-toggle="tooltip" data-placement="top" title="对象、类、元类、isa指针之间的爱恨情仇">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                
+
+                
+
+            </div>
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#iOS" title="iOS">iOS</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://huangxuan.me" target="_blank">Hux Blog</a></li>
+                    
+                        <li><a href="https://unsplash.com/" target="_blank">Unsplash</a></li>
+                    
+                </ul>
+                
+            </div>
+
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                    <li>
+                        <a target="_blank" href="https://twitter.com/jerrywangjing">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/jing-wang-68-66">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/JerryWang">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/jerrywangjing">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Jerry&#39;s Blog 2019 
+                    <br>
+                    Theme by <a href="http://huangxuan.me">Hux</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    Ported by <a href="http://blog.kaijun.rocks">Kaijun</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=kaijun&repo=hexo-theme-huxblog&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://jerrywangjing.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-136960405-1';
+    var _gaDomain = 'auto';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+
+
+<!-- Image to hack wechat -->
+<img src="https://jerrywangjing.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
