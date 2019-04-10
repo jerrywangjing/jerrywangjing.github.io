@@ -13,11 +13,11 @@
 
     <title>
         
-          iOS代码混淆之方法名替换 - Jerry的博客 | Jerry&#39;s Blog
+          iOS代码混淆之编译优化(三) - Jerry的博客 | Jerry&#39;s Blog
         
     </title>
 
-    <link rel="canonical" href="https://jerrywangjing.github.io/2019/03/02/iOS代码混淆之方法名替换/">
+    <link rel="canonical" href="https://jerrywangjing.github.io/2019/03/10/iOS代码混淆之编译优化(三)/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -170,11 +170,11 @@
                           <a class="tag" href="/tags/#代码混淆" title="代码混淆">代码混淆</a>
                         
                     </div>
-                    <h1>iOS代码混淆之方法名替换</h1>
+                    <h1>iOS代码混淆之编译优化(三)</h1>
                     <h2 class="subheading"></h2>
                     <span class="meta">
                         Posted by Jerry on
-                        2019-03-02
+                        2019-03-10
                     </span>
                 </div>
             </div>
@@ -194,82 +194,67 @@
                 post-container">
 
                 <blockquote>
-<p>这是iOS代码混淆系列文章的第一篇，后两篇可以点击下方链接查看</p>
+<p>这是iOS代码混淆系列文章的最后一篇，前两篇可以点击下方链接查看</p>
+<p><a href="http://wjerry.com/2019/03/02/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E6%96%B9%E6%B3%95%E5%90%8D%E6%9B%BF%E6%8D%A2/" target="_blank" rel="noopener">iOS代码混淆之方法名替换</a></p>
 <p><a href="http://wjerry.com/2019/04/05/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E8%B5%84%E6%BA%90%E6%9B%BF%E6%8D%A2/" target="_blank" rel="noopener">iOS代码混淆之资源替换</a></p>
-<p><a href="http://wjerry.com/2019/04/05/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96/" target="_blank" rel="noopener">iOS代码混淆之编译优化</a></p>
 </blockquote>
-<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在iOS开发中，某些项目为了保护代码安全，不被黑客攻破，通常需要在上架之前对源代码进行加密混淆，下面就介绍一种简单可行的Objective-C代码混淆方案。</p>
-<h4 id="混淆思路"><a href="#混淆思路" class="headerlink" title="混淆思路"></a>混淆思路</h4><p>由于现在的逆向技术越来越高超，各种破解方案层出不穷，其中就可以使用<code>class-dump</code>命令行工具轻易的dump出<code>demo.app</code>文件中的所有头文件，代码立马回暴露在黑客面前，对项目产生了很多不利因素。因此将代码关键方法进行混淆保护迫在眉睫。</p>
-<p>现有的一种混淆方案就是通过对指定class name 方法名进行MD5加密（显示乱码），然后通过脚本代码将加密的方法名生成到指定的头文件中，然后再使用宏替换的方式将混淆过的方法名在代码预编译阶段进行替换，使方法名即便在<code>class-dump</code>后也只会显示加密后的乱码显示，造成代码不易读，从而实现一定程度上的混淆保护。</p>
-<h4 id="混淆方式"><a href="#混淆方式" class="headerlink" title="混淆方式"></a>混淆方式</h4><p>通过宏定义（#define）的方法名映射，进行字符串替换。这样做的好处在于可以将映射类别规整到一个头文件中，并<code>#import</code> 进项目的<code>prefixHeader.h</code> 预编译头文件中，方便在项目编译时进行全局替换。当不需要混淆的时候，则不导入该头文件即可。</p>
-<h4 id="混淆脚本"><a href="#混淆脚本" class="headerlink" title="混淆脚本"></a>混淆脚本</h4><p>下面的shell脚本引自的是“念茜-安全攻防”系列文章，实现思路是将敏感的方法名集中写入func.plist文件中，并逐一<code>#define</code>成随机字符串，最后写入一个.h头文件中。脚本代码如下：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash">!/usr/bin/env bash</span></div><div class="line"></div><div class="line">TABLENAME=symbols</div><div class="line">SYMBOL_DB_FILE="symbols"</div><div class="line">STRING_SYMBOL_FILE="func.list"</div><div class="line">HEAD_FILE="$PROJECT_DIR/$PROJECT_NAME/codeObfuscation.h"</div><div class="line">export LC_CTYPE=C</div><div class="line"><span class="meta"></span></div><div class="line">#<span class="bash">维护数据库方便日后作排重</span></div><div class="line">createTable()</div><div class="line">&#123;</div><div class="line">    echo "create table $TABLENAME(src text, des text);" | sqlite3 $SYMBOL_DB_FILE</div><div class="line">&#125;</div><div class="line"></div><div class="line">insertValue()</div><div class="line">&#123;</div><div class="line">    echo "insert into $TABLENAME values('$1' ,'$2');" | sqlite3 $SYMBOL_DB_FILE</div><div class="line">&#125;</div><div class="line"></div><div class="line">query()</div><div class="line">&#123;</div><div class="line">    echo "select * from $TABLENAME where src='$1';" | sqlite3 $SYMBOL_DB_FILE</div><div class="line">&#125;</div><div class="line"></div><div class="line">ramdomString()</div><div class="line">&#123;</div><div class="line">    openssl rand -base64 64 | tr -cd 'a-zA-Z' |head -c 16</div><div class="line">&#125;</div><div class="line"></div><div class="line">rm -f $SYMBOL_DB_FILE</div><div class="line">rm -f $HEAD_FILE</div><div class="line">createTable</div><div class="line"></div><div class="line">touch $HEAD_FILE</div><div class="line">echo '#ifndef Demo_codeObfuscation_h</div><div class="line"><span class="meta">#</span><span class="bash">define Demo_codeObfuscation_h<span class="string">' &gt;&gt; $HEAD_FILE</span></span></div><div class="line">echo "//confuse string at `date`" &gt;&gt; $HEAD_FILE</div><div class="line">cat "$STRING_SYMBOL_FILE" | while read -ra line; do</div><div class="line">    if [[ ! -z "$line" ]]; then</div><div class="line">        ramdom=`ramdomString`</div><div class="line">        echo $line $ramdom</div><div class="line">        insertValue $line $ramdom</div><div class="line">        echo "#define $line $ramdom" &gt;&gt; $HEAD_FILE</div><div class="line">    fi</div><div class="line">done</div><div class="line">echo "#endif" &gt;&gt; $HEAD_FILE</div><div class="line"></div><div class="line">sqlite3 $SYMBOL_DB_FILE .dump</div></pre></td></tr></table></figure>
-<h4 id="配置步骤"><a href="#配置步骤" class="headerlink" title="配置步骤"></a>配置步骤</h4><ol>
-<li><p>创建混淆脚本文件<code>confuse.sh</code>，拷贝上述脚本代码到文件中保存，然后把该脚本文件放到项目根目录。例如：<code>yourProject_path/</code>目录下。</p>
-</li>
-<li><p>创建配置方法名称的列表文件，名为：<code>func.list</code>，此文件用于将需要混淆的方法名称写入进去，当项目编译时Build，会执行脚本遍历此文件中的方法名执行混淆操作，填写示例：</p>
-<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line">-(<span class="keyword">void</span>)sample;   <span class="comment">// 无参数方法</span></div><div class="line">-(<span class="keyword">void</span>)seg1:(<span class="built_in">NSString</span> *)string seg2:(<span class="built_in">NSUInteger</span>)num;  <span class="comment">// 有参数方法</span></div><div class="line"></div><div class="line"><span class="comment">// func.list 文件中这样写即可</span></div><div class="line">sample</div><div class="line">seg1</div><div class="line">seg2</div></pre></td></tr></table></figure>
-<p>然后将创建好的<code>func.list</code>文件同样拷贝到项目根目录，也可以将<code>confuse.sh</code> 和<code>func.list</code>文件都添加进项目目录中，方便日后查看与维护，Xcode 左上角点击<code>File --&gt; Add Files to &quot;xxx&quot;</code>添加即可。</p>
-</li>
-<li><p>配置<code>Build Phases</code>脚本</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><div class="line">// 脚本代码</div><div class="line"><span class="meta">$</span><span class="bash">PROJECT_DIR/confuse.sh</span></div></pre></td></tr></table></figure>
-<p>操作步骤如下图：</p>
-<p><img src="https://i.loli.net/2019/02/19/5c6bcd8ccbd30.png" alt="img1"></p>
-</li>
-<li><p>在<code>PrefixHeader.h</code>头文件中添加如下代码，意思是只有在Release模式下，才导入混淆头文件</p>
-<figure class="highlight swift"><table><tr><td class="code"><pre><div class="line"><span class="comment">// 混淆定义宏头文件，当在debug模式下，会执行脚本生成替换字符串，在release模式下导入宏文件执行替换</span></div><div class="line"></div><div class="line">#<span class="keyword">if</span> (<span class="type">DEBUG</span> != <span class="number">1</span>)</div><div class="line">#<span class="keyword">import</span> "codeObfuscation.h"</div><div class="line">#endif</div></pre></td></tr></table></figure>
-</li>
-<li><p>执行编译，可观察编译日志，查看custom shell 是否正确执行，如下图：</p>
-<p><img src="https://i.loli.net/2019/02/19/5c6bcfe0d585e.png" alt="img2"></p>
-</li>
-<li><p>如果编译成功，会在项目根目录生成一个头文件<code>codeObfuscation.h</code>，此文件中正是包含了宏替换的关键内容，将此文件添加到项目中，会在release模式下进行替换。</p>
-</li>
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前2篇文章已近讲了对于函数名的混淆，对项目中关键信息、资源文件的修改等相关混淆手段。但是，仅仅做到这几点就能万事大吉吗，黑客仍然可以通过分析代码逻辑或伪装代码来寻找程序漏洞，那么还有其他更坚固可靠的混淆方式呢，接下来就介绍下编译器级别的加固混淆方案。</p>
+<h3 id="iOS编译原理"><a href="#iOS编译原理" class="headerlink" title="iOS编译原理"></a>iOS编译原理</h3><p>iOS 开发中 Objective-C 和 Swift 都用的是 Clang / LLVM 来编译的。Clang是作为编译前端，LLVM做为编译后端，共同完成了iOS项目代码的编译阶段。</p>
+<h4 id="Clang-编译前端"><a href="#Clang-编译前端" class="headerlink" title="Clang(编译前端)"></a>Clang(编译前端)</h4><p>Clang 是 LLVM 的子项目，是 C，C++ 和 Objective-C 编译器，目的是提供惊人的快速编译，比 GCC 快3倍，其中的 clang static analyzer 主要是进行语法分析，语义分析和生成中间代码，当然这个过程会对代码进行检查，出错的和需要警告的会标注出来。</p>
+<h4 id="LLVM-编译后端"><a href="#LLVM-编译后端" class="headerlink" title="LLVM(编译后端)"></a>LLVM(编译后端)</h4><p>LLVM是一个模块化和可重用的编译器和工具链技术的集合，LLVM 核心库提供一个优化器，对流行的 CPU 做代码生成支持。LLVM 比较有特色的一点是它能提供一种代码编写良好的中间表示 IR，这意味着它可以作为多种语言的后端，这样就能够提供语言无关的优化同时还能够方便的针对多种 CPU 的代码生成。</p>
+<h3 id="Hikari"><a href="#Hikari" class="headerlink" title="Hikari"></a>Hikari</h3><p><a href="https://github.com/HikariObfuscator/Hikari" target="_blank" rel="noopener">Hikari</a> 是一个基于 <a href="https://github.com/obfuscator-llvm/obfuscator" target="_blank" rel="noopener">Obfuscator-LLVM</a> 的改进，增加了一些额外的自定义构建通道，更简单易用，结合<a href="https://github.com/HikariObfuscator/Hikari/wiki" target="_blank" rel="noopener">使用文档</a>，可以快速体验编译级别的代码加固效果。</p>
+<p>OLLVM 是瑞士西北应用科技大学安全实验室于2010年6月份发起的一个项目，该项目旨在提供一套开源的针对 LLVM 的代码混淆工具，以增加对逆向工程的难度。目前，OLLVM已经支持LLVM8.0版本。</p>
+<h4 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h4><ol>
+<li>在这里<a href="https://github.com/HikariObfuscator/Hikari/releases" target="_blank" rel="noopener">下载</a>最新release版的pkg文件双击安装</li>
+<li>安装完成后，重启Xcode就可以在Xcode-&gt; Toolchains -&gt; Hikari 中看到已经有了编译器选项。</li>
 </ol>
-<h4 id="可能会遇到的问题"><a href="#可能会遇到的问题" class="headerlink" title="可能会遇到的问题"></a>可能会遇到的问题</h4><ol>
-<li><p>第一次编译成功之前，即脚本代码执行之前是不会有<code>codeObfuscation.h</code>文件的，所以可能在<code>PrefixHeader.h</code> 文件中报错：Error_找不到该文件。<strong>解决方法：暂时注释掉即可</strong>。</p>
-</li>
-<li><p>在执行脚本时，编译日志处出现如下报错：</p>
-<p><img src="https://i.loli.net/2019/02/19/5c6bcfe0d7e90.png" alt="img3"></p>
-<p>上图表示在执行脚本代码时，未能找到<code>func.list</code> 文件或其他文件，这时需要查看脚本代码中该文件的配置路径是否正确。<strong>解决方法：在confuse.sh文件中排查各项配置路径，并改正</strong>。</p>
-</li>
-<li><p>在执行脚本时，如遇到如下报错：</p>
-<figure class="highlight stylus"><table><tr><td class="code"><pre><div class="line">confuse<span class="selector-class">.sh</span>: Permission denied</div></pre></td></tr></table></figure>
-<p>说明<code>confuse.sh</code>脚本文件没有可执行权限，需要在终端iTerm2 中给<code>confuse.sh</code>文件添加执行权限，如下操作即可：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><div class="line">chmod a+x confuse.sh</div></pre></td></tr></table></figure>
-</li>
-</ol>
-<h4 id="使用class-dump-来测试"><a href="#使用class-dump-来测试" class="headerlink" title="使用class-dump 来测试"></a>使用class-dump 来测试</h4><p><code>class-dump</code>是一个命令行工具，它利用Objective-C语言的runtime的特性，将存储在mach-O文件中的@interface和@protocol信息提取出来，并生成对应的.h文件。 它将xx.app格式的iOS项目文件进行分析，并通过命令生成该app源代码中的所有头文件列表，其中就包含了方法名称，可以清晰的查看dump出来的方法名是否已经被混淆。</p>
-<h4 id="安装-class-dump"><a href="#安装-class-dump" class="headerlink" title="安装 class-dump"></a>安装 class-dump</h4><p>首先需要去这里：<a href="http://stevenygard.com/projects/class-dump/" target="_blank" rel="noopener">http://stevenygard.com/projects/class-dump/</a>，下载<code>class-dump-3.5.dmg</code>压缩包，解压后将文件夹中的<code>class-dump</code>可执行文件拷贝到<code>/usr/local/bin</code>目录下。</p>
-<p>具体操作步骤：</p>
+<h4 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h4><p>然后在 <code>Build Settings</code> -&gt; <code>Other C Flags</code> 中加入混淆标记</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><div class="line">-mllvm -enable-bcfobf 		启用伪控制流  </div><div class="line">-mllvm -enable-cffobf 		启用控制流平坦化</div><div class="line">-mllvm -enable-splitobf 	启用基本块分割  </div><div class="line">-mllvm -enable-subobf 		启用指令替换  </div><div class="line">-mllvm -enable-acdobf 		启用反class-dump  </div><div class="line">-mllvm -enable-indibran 	启用基于寄存器的相对跳转，配合其他加固可以彻底破坏IDA/Hopper的伪代码(俗称F5)  </div><div class="line">-mllvm -enable-strcry 		启用字符串加密  </div><div class="line">-mllvm -enable-funcwra 		启用函数封装</div><div class="line">-mllvm -enable-allobf        依次性启用上述所有标记</div></pre></td></tr></table></figure>
+<p>修改Xcode 相关配置，得到混淆效果。</p>
 <ol>
-<li><p>解压class-dump文件，如下图所示：</p>
-<p><img src="https://i.loli.net/2019/02/19/5c6bcfe010d2d.png" alt="img4"></p>
-</li>
-<li><p>打开终端，输入如下命令，即可打开<code>/usr/local/bin</code>目录文件夹，然后将<code>class-dump</code>文件拷贝到此目录下。</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><div class="line">open /usr/local/bin</div></pre></td></tr></table></figure>
-</li>
-<li><p>给<code>class-dump</code>文件更改权限，终端输入如下命令：</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><div class="line">sudo chmod <span class="number">777</span> /usr/local/bin/class-dump</div></pre></td></tr></table></figure>
-</li>
-<li><p>在终端输入<code>class-dump</code>  查看是否安装成功，如显示命令的介绍和版本信息，就说明已经安装成功。</p>
-<p><img src="https://i.loli.net/2019/02/19/5c6bcfe0d305f.png" alt="img5"></p>
+<li>选择<code>Xcode</code> -&gt; <code>Toolchains</code> -&gt; <code>Hikari</code> 将混淆工具和项目关联</li>
+<li>将所有与要运行的 target 相关的 target（包括pod进来的库），在BuildSetting中修改<code>Enable Index-While-Building</code> 的值改为 <em>NO</em>。</li>
+<li>修该BuildSetting 中的<code>Optimization Level</code> 的值为 <code>None[-O0]</code></li>
+<li>重新编译项目即可。</li>
+</ol>
+<h4 id="可能遇到的问题"><a href="#可能遇到的问题" class="headerlink" title="可能遇到的问题"></a>可能遇到的问题</h4><ol>
+<li><p>编译过程中报错，内容如下：</p>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><div class="line">Undefined symbols <span class="keyword">for</span> architecture arm64:</div><div class="line">  <span class="string">"___isOSVersionAtLeast"</span>, referenced from:</div><div class="line">      -[MyLayoutPos posNumVal] <span class="keyword">in</span> MyLayoutPos<span class="selector-class">.o</span></div><div class="line">      -[MyLayoutViewSizeClass myLayoutTopPadding] <span class="keyword">in</span> MyLayoutSizeClass<span class="selector-class">.o</span></div><div class="line">      -[MyLayoutViewSizeClass myLayoutBottomPadding] <span class="keyword">in</span> MyLayoutSizeClass<span class="selector-class">.o</span></div><div class="line">      -[MyLayoutViewSizeClass myLayoutLeadingPadding] <span class="keyword">in</span> MyLayoutSizeClass<span class="selector-class">.o</span></div><div class="line">      -[MyLayoutViewSizeClass myLayoutTrailingPadding] <span class="keyword">in</span> MyLayoutSizeClass<span class="selector-class">.o</span></div><div class="line">      _HikariFunctionWrapper.<span class="number">7182</span> <span class="keyword">in</span> MyLayoutSizeClass<span class="selector-class">.o</span></div><div class="line">      _HikariFunctionWrapper.<span class="number">7188</span> <span class="keyword">in</span> MyLayoutSizeClass<span class="selector-class">.o</span></div><div class="line">      ...</div><div class="line">ld: symbol(s) not found <span class="keyword">for</span> architecture arm64</div><div class="line">clang-<span class="number">7</span>: error: linker command failed with exit <span class="selector-tag">code</span> <span class="number">1</span> (use -v to see invocation)</div></pre></td></tr></table></figure>
 </li>
 </ol>
-<h4 id="class-dump使用方法"><a href="#class-dump使用方法" class="headerlink" title="class-dump使用方法"></a>class-dump使用方法</h4><p>dump命令如下：</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><div class="line">class-dump -H /Users/xxx/Desktop/century.app -o /Users/jerry/Desktop/centuryHeaders</div></pre></td></tr></table></figure>
-<p>其中，<code>-H</code> 是生成头文件的命令，<code>-o</code> 是指定的头文件保存目录，<code>/Users/xxx/Desktop/century.app</code> 则是App文件的路径。</p>
-<p>将在<code>centuryHeaders</code>文件夹中看到所有dump出的头文件。如下示例：</p>
-<p><img src="https://i.loli.net/2019/02/19/5c6bcfe0da5a0.png" alt="img6"></p>
-<p><strong>Tips：如何从打包出来的xxx.ipa 文件中提取xxx.app 文件</strong></p>
-<p> 先将<code>xxx.ipa</code> 文件后缀名修改为<code>xxx.zip</code> ， 然后解压<code>xxx.zip</code> 文件，会得到一个名为<code>Payload</code>的文件夹，文件夹中就放置的咱们需要的<code>xxx.app</code>文件，导出即可。</p>
-<p><strong>注意：</strong></p>
-<p>不是所有的xxx.app 文件都可以轻易的dump出头文件列表，只有未加密的，自己开发暂未上架App store 的app可以导出，App store 上架的三方应用由于被苹果加过密（加壳），不能直接dump，需要先进行砸壳（Dumpdecrypted工具）后，才能dump出需要的头文件。</p>
-<h4 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h4><p>至此，iOS开发中的Objective-C 代码混淆方案和class-dump技术的使用，都已经讲述清楚了，希望读者能体会到其中的安全攻防思路，在之后的开发中能多注意代码的安全防范。</p>
-<p>注意：这种替换方法名的混淆方案会让App Store 审核被拒，2.3.1 - Performance We discovered that your app contains obfuscated code…，因此，不建议在App Store 上架的项目中使用。</p>
-<h4 id="参考资料："><a href="#参考资料：" class="headerlink" title="参考资料："></a>参考资料：</h4><blockquote>
-<p><a href="https://blog.csdn.net/yiyaaixuexi/article/details/29201699" target="_blank" rel="noopener">https://blog.csdn.net/yiyaaixuexi/article/details/29201699</a></p>
-<p><a href="https://www.jianshu.com/p/1e3fe0a8c048" target="_blank" rel="noopener">https://www.jianshu.com/p/1e3fe0a8c048</a></p>
+<p><code>&quot;___isOSVersionAtLeast&quot;</code>符号在arm64架构下找不到，根据以往的经验，出现这种错误的时候一般都是没有导入相关动态库(.Framework)，或静态库(.a)等造成的。庆幸的是已经有人在GitHub上提交了issues并给出了解决方案：</p>
+<blockquote>
+<p>作者的回答：<br>You probably need to explicitly link to clang-rt, available in your LLVM Toolchain directory<br>Sorry I mean clang-rt, at Hikari.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.ios.a (or macOS suffix)</p>
 </blockquote>
+<p>意思是说：可能是缺少某个编译器库造成的，需要手动将这个库添加到Xcode的<code>Linked Frameworks andLibraries</code>动态链接库目录中。并说明了此库所在的目录<code>Hikari.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.ios.a</code>，意思是在Hikari编译器的子目录中找到文件<code>libclang_rt.ios.a</code>，并将他引入到Xcode项目中即可。查找路径顺序如下：</p>
+<p><img src="https://i.loli.net/2019/03/22/5c94b36ece575.png" alt="img1"></p>
+<p><img src="https://i.loli.net/2019/03/22/5c94b36eef8dd.png" alt="img2"></p>
+<p><img src="https://i.loli.net/2019/03/22/5c94b36ef1e81.png" alt="img3"></p>
+<p><img src="https://i.loli.net/2019/03/22/5c94b36f2e45d.png" alt="img4"></p>
+<p>打开<code>Show in Finder</code> 定位到Hikari的安装目录，然后按照此路径<code>usr/lib/clang/10.0.0/lib/darwin/libclang_rt.ios.a</code>找到<code>libclang_rt.ios.a</code>文件，添加到Xcode的链接库中即可。</p>
+<ol>
+<li>使用Hikari编译后，Archive 打包后，需要上传App Store 时可能会出现 “App Store” 按钮消失的问题，Archives页面右下角会出现一个提示字符：</li>
+</ol>
+<blockquote>
+<p>“App Store distribution requires an Xcode Default Toolchain”</p>
+<p>意思是：App Store 发布版需要使用Xcode 默认的Toolchain (编译工具)</p>
+</blockquote>
+<p>如下图所示：</p>
+<p><img src="https://i.loli.net/2019/03/24/5c975cb25b5b4.png" alt="img5"></p>
+<p><img src="https://i.loli.net/2019/03/24/5c975cb252a92.png" alt="img6"></p>
+<p>出现这个问题是因为，我们使用了Hikari编译器 Archive的包，所以需要想办法去除这个警告即可。在Hikari的wiki文档中，我们发现作者在AppStore Guideline 安装指南中已经说明了解决方案：</p>
+<blockquote>
+<p>Alternatively, you could use Hikari’s toolchain to build normally then remove <code>DefaultToolchainOverrideInfo</code> from the IPA’s Info.plist</p>
+<p>只需要在Arichive 包中的Info.plist 中找到这个值”DefaultToolchainOverrideInfo” 删除即可。可以看出此字段正是标记是否使用默认Toolchain的关键。</p>
+</blockquote>
+<p>操作步骤为下面图示顺序，注意：记得删除字段后，<strong>一定要重启Xcode才能生效的。</strong></p>
+<p><img src="https://i.loli.net/2019/03/24/5c975d1c91241.png" alt="img9"></p>
+<p><img src="https://i.loli.net/2019/03/24/5c975d1c6a6fd.png" alt="img7"></p>
+<p><img src="https://i.loli.net/2019/03/24/5c975d1c7d69e.png" alt="img8"></p>
+<p><img src="https://i.loli.net/2019/03/24/5c975d1caed98.png" alt="img10"></p>
+<p>删除上面红色框所示的字段即可，完了后要重启Xcode才会生效。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>这是iOS代码混淆系列文章的最后一篇，着重讲解了iOS编译原理相关知识，编译前端Clang和编译后端LLVM在整个编译期间各自所做的工作。后面重点讲述了如何使用开源工具Hikari 进行编译混淆、加固，在实践过程中，对遇到的坑也讲了解决方案。</p>
+<p>希望看了这几篇文章的小伙伴，能对iOS代码混淆有个初步的学习和了解，最好能结合自身条件加以实践，想必会理解的更深刻。</p>
 
 
                 <hr>
@@ -279,12 +264,12 @@
                 <ul class="pager">
                     
                         <li class="previous">
-                            <a href="/2019/03/05/iOS代码混淆之资源替换/" data-toggle="tooltip" data-placement="top" title="iOS代码混淆之资源替换">&larr; Previous Post</a>
+                            <a href="/2019/04/07/iOS中各种“锁”的理解及应用/" data-toggle="tooltip" data-placement="top" title="iOS中各种“锁”的理解及应用">&larr; Previous Post</a>
                         </li>
                     
                     
                         <li class="next">
-                            <a href="/2019/02/28/对象、类、元类、isa指针之间的爱恨情仇/" data-toggle="tooltip" data-placement="top" title="对象、类、元类、isa指针之间的爱恨情仇">Next Post &rarr;</a>
+                            <a href="/2019/03/08/离屏渲染知多少/" data-toggle="tooltip" data-placement="top" title="离屏渲染知多少?">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
