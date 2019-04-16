@@ -90,6 +90,13 @@
 
                         
                         <li>
+                            <a href="/archives/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
                             <a href="/about/">About</a>
                         </li>
                         
@@ -98,13 +105,6 @@
                         
                         <li>
                             <a href="/tags/">Tags</a>
-                        </li>
-                        
-                    
-
-                        
-                        <li>
-                            <a href="/archives/">Archives</a>
                         </li>
                         
                     
@@ -221,7 +221,7 @@
 <p><a href="http://www.imagemagick.org/script/index.php" target="_blank" rel="noopener">ImageMagick</a>：是一款创建、编辑、合成，转换图像的命令行工具，可对 png 图片做轻量压缩，既不损失图片质量，又可改变图片文件 hash 值，正是我们想要的工具。</p>
 <p>如果电脑中没有安装的话，需要使用<code>Homebrew</code>来安装执行命令如下：</p>
 <figure class="highlight powershell"><table><tr><td class="code"><pre><div class="line">brew install imagemagick</div></pre></td></tr></table></figure>
-<p>安装完成后，就可以使用ImageMagick的命令来修改：</p>
+<p>安装完成后，就可以执行ImageMagick的命令，来压缩工程目录下所有 png 文件：</p>
 <figure class="highlight powershell"><table><tr><td class="code"><pre><div class="line">find . -iname <span class="string">"*.png"</span> -exec echo &#123;&#125; \; -exec convert &#123;&#125; &#123;&#125; \;</div></pre></td></tr></table></figure>
 <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>本篇介绍了，如何通过修改工程名称、类前缀、资源hash值等方式，达到修改二进制包的目的，为上架苹果App Store 做准备。有兴趣的小伙伴可以亲自尝试一下，想必可以给您带来一些帮助。</p>
 

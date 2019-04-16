@@ -17,7 +17,7 @@
         
     </title>
 
-    <link rel="canonical" href="https://jerrywangjing.github.io/archive/2018/07/">
+    <link rel="canonical" href="https://jerrywangjing.github.io/page/2/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -147,7 +147,294 @@
 
 
     <!-- Main Content -->
-    <!-- Default Archive layout, we use archives instead. -->
+    <!-- Page Header -->
+<header class="intro-header" style="background-image: url('/img/home-bg.jpg')">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1 ">
+                <div class="site-heading">
+                    <h1>Jerry&#39;s Blog</h1>
+                    <!--<hr class="small">-->
+                    <span class="subheading">Less is more, Live and learn</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+<!-- Main Content -->
+<div class="container">
+    <div class="row">
+        
+
+<!-- USE SIDEBAR -->
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-1
+                col-md-8 col-md-offset-1
+                col-sm-12
+                col-xs-12
+                post-container
+            ">
+            
+                <!-- Main Content -->
+
+
+<div class="post-preview">
+
+    <a href="/2018/09/07/RunLoop的实现原理及应用/">
+        <h2 class="post-title">
+            RunLoop的实现原理及应用
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            什么是RunLoop?为了保证线程能随时处理事件且不会退出，我们需要一个run loop 运行循环来一直保持能持续接收并处理各种事件，确保执行线程不被销毁。实现思路类似于如下代码：
+// Event loopfunction loop() &#123;    initialize();    do &#123;        var message = get_next_message();......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jerry on
+        2018-09-07
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/2018/08/28/深入剖析Autorelease-Pool-自动释放池/">
+        <h2 class="post-title">
+            深入剖析Autorelease Pool (自动释放池)
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            前言在MRC的内存管理模式下，可以将创建的对象加入自动释放池，程序员则无需手动调用release方法来释放对象，而是当自动释放池销毁的时候会对其中的每一个对象发送release消息，从而达到自动释放的目的。下面我们一步步揭开它的神秘面纱，深度剖析autoreleasepool的实现原理。
+@autoreleasepool 实现原理main.m文件中的@autoreleasepool()
+在i......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jerry on
+        2018-08-28
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/2018/07/08/离屏渲染知多少/">
+        <h2 class="post-title">
+            离屏渲染知多少?
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            预备知识OpenGL中，GPU屏幕渲染有两种方式:
+On-Screen Rendering (当前屏幕渲染)：指的是GPU的渲染操作是在当前用于显示的屏幕缓冲区进行。
+Off-Screen Rendering (离屏渲染)：指的是在GPU在当前屏幕缓冲区以外开辟一个缓冲区进行渲染操作。
+
+当前屏幕渲染不需要额外创建新的缓存，也不需要开启新的上下文，相对于离屏渲染性能更好。但是受当前屏幕渲染的......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jerry on
+        2018-07-08
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/2018/06/07/iOS中各种“锁”的理解及应用/">
+        <h2 class="post-title">
+            iOS中各种“锁”的理解及应用
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            前言通常在一般的iOS应用开发中会很少碰到使用“锁”的业务逻辑，但是在需要使用多线程技术，解决大多数场景写的业务逻辑时，会使用到线程锁来保证临界数据的读写安全性。当然，“锁”的概念在计算机科学及应用中也是举足轻重的，对于要写出高质量、高性能、安全可靠的代码来说，也是非常重要的。
+预备知识
+线程调度
+计算机通常只有一个CPU,在任意时刻只能执行一条机器指令,每个线程只有获得CPU的使用权才能执......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jerry on
+        2018-06-07
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/2018/05/28/对象、类、元类、isa指针之间的爱恨情仇/">
+        <h2 class="post-title">
+            对象、类、元类、isa指针之间的爱恨情仇
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            前言在iOS开发中，对象、类的使用可以说是无处不在，伴随着整个项目的开发周期，也是程序的重要组成部分。但是在日常开发中，很难直观的见到元类、isa指针，那么它们究竟是谁，在开发中起着什么作用呢？下面我们就分别介绍下这几位亲兄弟的结构体定义，以及之间的关联关系。
+类(class)的结构体定义类对象(Class)是由程序员定义并在运行时有编译器创建的，他没有自己的实例变量，这里需要注意的是类的成......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jerry on
+        2018-05-28
+    </p>
+
+</div>
+<hr>
+
+
+
+<!-- Pager -->
+
+<ul class="pager">
+    
+        <li class="previous">
+            <a href="/">&larr; Newer Posts</a>
+        </li>
+    
+    
+</ul>
+
+
+
+                <!-- 如果开启评论功能 -->
+                
+
+            </div>
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-3 col-lg-offset-0
+                col-md-3 col-md-offset-0
+                col-sm-12
+                col-xs-12
+                sidebar-container
+            ">
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                        
+                            
+                            <a href="/tags/#iOS" title="iOS" rel="13">iOS</a>
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                            <a href="/tags/#代码混淆" title="代码混淆" rel="3">代码混淆</a>
+                            
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Short About -->
+                <section class="visible-md visible-lg">
+                    <hr><h5><a href="/about/">ABOUT ME</a></h5>
+                    <div class="short-about">
+
+                        
+                            <img src="/img/avatar.jpg" />
+                        
+
+                        
+                            <p>一个心神宁静的地方！</p>
+                        
+
+                        <!-- SNS Link -->
+                        <ul class="list-inline">
+                            
+                            
+                                <li>
+                                    <a target="_blank" href="https://twitter.com/jerrywangjing">
+                                        <span class="fa-stack fa-lg">
+                                            <i class="fa fa-circle fa-stack-2x"></i>
+                                            <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                                        </span>
+                                    </a>
+                                </li>
+                            
+                            
+                                <li>
+                                    <a target="_blank" href="https://www.zhihu.com/people/jing-wang-68-66">
+                                        <span class="fa-stack fa-lg">
+                                            <i class="fa fa-circle fa-stack-2x"></i>
+                                            <i class="fa  fa-stack-1x fa-inverse">知</i>
+                                        </span>
+                                    </a>
+                                </li>
+                            
+
+                            
+                                <li>
+                                    <a target="_blank" href="http://weibo.com/JerryWang">
+                                        <span class="fa-stack fa-lg">
+                                            <i class="fa fa-circle fa-stack-2x"></i>
+                                            <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                                        </span>
+                                    </a>
+                                </li>
+                            
+
+                            
+
+                            
+                                <li>
+                                    <a target="_blank"  href="https://github.com/jerrywangjing">
+                                        <span class="fa-stack fa-lg">
+                                            <i class="fa fa-circle fa-stack-2x"></i>
+                                            <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                        </span>
+                                    </a>
+                                </li>
+                            
+                            
+                            
+                            
+                        </ul>
+                    </div>
+                </section>
+                
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://huangxuan.me" target="_blank">Hux Blog</a></li>
+                    
+                        <li><a href="https://unsplash.com/" target="_blank">Unsplash</a></li>
+                    
+                </ul>
+                
+            </div>
+        
+    </div>
+</div>
+
 
     <!-- Footer -->
     <!-- Footer -->

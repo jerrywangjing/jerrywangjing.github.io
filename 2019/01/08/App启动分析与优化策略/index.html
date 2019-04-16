@@ -13,11 +13,11 @@
 
     <title>
         
-          对象、类、元类、isa指针之间的爱恨情仇 - Jerry的博客 | Jerry&#39;s Blog
+          App启动分析与优化策略 - Jerry的博客 | Jerry&#39;s Blog
         
     </title>
 
-    <link rel="canonical" href="https://jerrywangjing.github.io/2019/02/28/对象、类、元类、isa指针之间的爱恨情仇/">
+    <link rel="canonical" href="https://jerrywangjing.github.io/2019/01/08/App启动分析与优化策略/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -90,14 +90,14 @@
 
                         
                         <li>
-                            <a href="/about/">About</a>
+                            <a href="/archives/">Archives</a>
                         </li>
                         
                     
 
                         
                         <li>
-                            <a href="/archives/">Archives</a>
+                            <a href="/about/">About</a>
                         </li>
                         
                     
@@ -168,11 +168,11 @@
                           <a class="tag" href="/tags/#iOS" title="iOS">iOS</a>
                         
                     </div>
-                    <h1>对象、类、元类、isa指针之间的爱恨情仇</h1>
+                    <h1>App启动分析与优化策略</h1>
                     <h2 class="subheading"></h2>
                     <span class="meta">
                         Posted by Jerry on
-                        2019-02-28
+                        2019-01-08
                     </span>
                 </div>
             </div>
@@ -191,74 +191,116 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在iOS开发中，对象、类的使用可以说是无处不在，伴随着整个项目的开发周期，也是程序的重要组成部分。但是在日常开发中，很难直观的见到元类、isa指针，那么它们究竟是谁，在开发中起着什么作用呢？下面我们就分别介绍下这几位亲兄弟的结构体定义，以及之间的关联关系。</p>
-<h4 id="类-class-的结构体定义"><a href="#类-class-的结构体定义" class="headerlink" title="类(class)的结构体定义"></a>类(class)的结构体定义</h4><p>类对象(Class)是由程序员定义并在运行时有编译器创建的，他没有自己的实例变量，这里需要注意的是类的<strong>成员变量</strong>和<strong>实例方法列表</strong>是属于实例对象的，但其存储于类对象当中。下图指出类的结构体定义：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="comment">// An opaque type that represents an Objective-C class.</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">objc_class</span> *<span class="title">Class</span>;</span></div><div class="line"></div><div class="line"><span class="comment">// OC1.0 class 结构体定义</span></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">objc_class</span> &#123;</span></div><div class="line">	Class _Nonnull isa  OBJC_ISA_AVAILABILITY;</div><div class="line"><span class="meta">#<span class="meta-keyword">if</span> !__OBJC2__</span></div><div class="line">	Class _Nullable super_class                              OBJC2_UNAVAILABLE;</div><div class="line">	<span class="keyword">const</span> <span class="keyword">char</span> * _Nonnull name                               OBJC2_UNAVAILABLE;</div><div class="line">	<span class="keyword">long</span> version                                             OBJC2_UNAVAILABLE;</div><div class="line">	<span class="keyword">long</span> info                                                OBJC2_UNAVAILABLE;</div><div class="line">	<span class="keyword">long</span> instance_size                                       OBJC2_UNAVAILABLE;</div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">objc_ivar_list</span> * _<span class="title">Nullable</span> <span class="title">ivars</span>                  <span class="title">OBJC2_UNAVAILABLE</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">objc_method_list</span> * _<span class="title">Nullable</span> * _<span class="title">Nullable</span> <span class="title">methodLists</span> <span class="title">OBJC2_UNAVAILABLE</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">objc_cache</span> * _<span class="title">Nonnull</span> <span class="title">cache</span>                       <span class="title">OBJC2_UNAVAILABLE</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">objc_protocol_list</span> * _<span class="title">Nullable</span> <span class="title">protocols</span>          <span class="title">OBJC2_UNAVAILABLE</span>;</span></div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">&#125; OBJC2_UNAVAILABLE;</div><div class="line"><span class="comment">/* Use `Class` instead of `struct objc_class *` */</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="comment">// OC2.0 class 结构体定义，我们注意到上面的定义后面的标识符OBJC2_UNAVAILABLE，意思是已经不适用ObjC2.0了，现在ObjC2.0 对objc_class的定义如下：</span></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">objc_class</span> :</span> objc_object &#123;</div><div class="line">    <span class="keyword">isa_t</span> isa;</div><div class="line">    Class superclass;</div><div class="line">    <span class="keyword">cache_t</span> cache;</div><div class="line">    <span class="keyword">class_data_bits_t</span> bits;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
-<p>我们在<code>objc/objc.h</code> 源码文件中找到了Class 类结构体的定义，下面我们分析并说明一下几个关键的结构体成员：</p>
+                <h4 id="启动过程分析"><a href="#启动过程分析" class="headerlink" title="启动过程分析"></a>启动过程分析</h4><ul>
+<li><p>解析Info.plist</p>
 <ul>
-<li><strong>isa</strong>：  是一个不能为空(null)的Class对象，它指向该类的元类(meta class)。</li>
-<li><strong>super_class</strong>：是一个可以为空的Class对象，它指向当前类的父类。会一直追溯到根类(NSObject)，那么根类(NSObject)的父类是指向谁的呢？通过分析根类的父类是指向空(nil)的，这样也就可以解释为什么<code>super_class</code> 是可以为空的。</li>
-<li><strong>ivars：</strong>是实例变量列表，保存着该类的所有实例变量</li>
-<li><strong>methodLists：</strong>是方法列表，保存着实例方法和类方法</li>
-<li><strong>protocols：</strong>是协议列表，保存该类的协议方法</li>
-<li><strong>cache：</strong>是一个缓存，用于缓存最近使用过的方法。</li>
-<li><strong>…</strong></li>
-</ul>
-<p>上面我们根据Class 类的结构体，分析内部成员的作用及含义。想必大家已经对Class类的内部结构有了一个初步的认识。如果想再深入理解<code>isa</code>和<code>super_class</code>在不同情况下都是如何进行指向的，我们再看下面的一个图示来逐步分析：</p>
-<p><img src="https://i.loli.net/2019/02/26/5c750055e444c.png" alt="img1"></p>
-<p>首先，注意图中的注释，实线的箭头(→ superclass)代表<strong>父类指针</strong>，虚线的箭头(→isa)代表<code>isa</code>指针，从上至下的深色方框依次代表：<strong>根类-&gt; 父类-&gt; 子类</strong>，下面咱们从上至下层层分析上图的含义：</p>
-<ul>
-<li>第一层：<ul>
-<li><strong>isa指针：</strong> 根类的实例对象(<code>instance Of Root class)</code>的<code>isa</code>指向根类(<code>Root class</code>)，根类的<code>isa</code>指针指向根元类(<code>Root meta class</code>)，根元类的<code>isa</code>指向它本身。</li>
-<li><strong>superclass指针：</strong>根类(<code>Root class</code>)的<code>superclass</code>指向<code>nil</code>，根元类的父类指向根类。</li>
+<li>加载相关信息，例如闪屏</li>
+<li>沙箱建立、权限检查</li>
 </ul>
 </li>
-<li>第二层：<ul>
-<li><strong>isa指针：</strong>父类的实例对象(<code>instance of superclass</code>)的<code>isa</code>指向父类（superclass），父类的<code>isa</code>指向父元类，父元类的<code>isa</code>指向根元类。</li>
-<li><strong>superclass指针：</strong>父类的<code>superclass</code>指向根类，父元类的<code>superclass</code>指向根元类。</li>
-</ul>
-</li>
-<li>第三层：<ul>
-<li><strong>isa指针：</strong>子类实例对象（instance of subclass）的<code>isa</code>指向子类，子类的<code>isa</code>指向子元类，子元类的<code>isa</code>指向根元类。</li>
-<li><strong>superclass指针：</strong>子类的<code>superclass</code>指向父类，子元类的<code>superclass</code>指向父元类。</li>
-</ul>
-</li>
-</ul>
-<p><strong>动态创建一个类</strong></p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="comment">// 创建一个新类和元类</span></div><div class="line"><span class="function">Class <span class="title">objc_allocateClassPair</span> <span class="params">( Class superclass, <span class="keyword">const</span> <span class="keyword">char</span> *name, <span class="keyword">size_t</span> extraBytes )</span></span>; <span class="comment">//如果创建的是root class，则superclass为Nil。extraBytes通常为0</span></div><div class="line"><span class="comment">// 销毁一个类及其相关联的类</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">objc_disposeClassPair</span> <span class="params">( Class cls )</span></span>; <span class="comment">//在运行中还存在或存在子类实例，就不能够调用这个。</span></div><div class="line"><span class="comment">// 在应用中注册由objc_allocateClassPair创建的类</span></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">objc_registerClassPair</span> <span class="params">( Class cls )</span></span>; <span class="comment">//创建了新类后，然后使用class_addMethod，class_addIvar函数为新类添加方法，实例变量和属性后再调用这个来注册类，再之后就能够用了。</span></div></pre></td></tr></table></figure>
-<h4 id="对象-object-的结构体定义"><a href="#对象-object-的结构体定义" class="headerlink" title="对象(object)的结构体定义"></a>对象(object)的结构体定义</h4><figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="comment">// Represents an instance of a class.</span></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">objc_object</span> &#123;</span></div><div class="line">	Class _Nonnull isa  OBJC_ISA_AVAILABILITY;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
-<p>我们可以看到，<code>objc_object</code>代表一个实例对象，它的结构体内部有一个不为空的<code>isa</code>指针，<code>isa</code>是指向对象所属类的指针。另外，我们常用的<code>id</code>类型是一个指向<code>objc_object</code>结构体的指针，它可以指向任意一个oc对象。</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="comment">// A pointer to an instance of a class.</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">objc_object</span> &#123;</span></div><div class="line">    Class isa;</div><div class="line">&#125; *id;</div></pre></td></tr></table></figure>
-<h4 id="元类-Meta-class-的结构体定义"><a href="#元类-Meta-class-的结构体定义" class="headerlink" title="元类(Meta class)的结构体定义"></a>元类(Meta class)的结构体定义</h4><p>元类(Meta class) 就是<strong>类对象</strong>的<strong>类</strong>，<strong>每个类都有自己的元类</strong>，也就是<code>objc_class</code>结构体里面的<code>isa</code>指针所指向的类。元类用来表述类对象本身所具备的元数据， <strong>因为元类中存储着类对象的方法列表，即类方法</strong>。</p>
-<p>下面将介绍实例对象、类、元类之间的关系，如下图所示：</p>
-<p><img src="https://upload-images.jianshu.io/upload_images/1283539-ac38532bf444219a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="img2"></p>
-<p>当向对象发消息时，runtime会在这个<strong>对象所属类</strong>的实例方法列表中查找消息对应的方法实现(IMP)。但当向类发送消息时，runtime就会在这个类的<strong>元类</strong>(meta class)方法列表里查找。所有的元类(meta class)，包括根类(Root class)，父类(Superclass)，子类(Subclass)的<code>isa</code>最终都指向根类(Root class)的元类(meta class)，这样能够形成一个闭环。可以总结为：</p>
+<li><p>Mach-O加载</p>
+<blockquote>
+<p><strong>Mach-O 文件</strong>：我们写的程序想要跑起来，肯定它的可执行文件格式要被操作系统所理解。比如ELF是Linux下的可执行文件格式，那么对于OS X / iOS来说，Mach-O 是其可执行文件格式。</p>
+<p><strong>Mach-O格式主要包括以下几种文件类型：</strong></p>
 <ul>
-<li>当发送消息给实例对象时，runtime函数会在<strong>此实例对象所属类的实例方法列表</strong>中查找方法实现(IMP)并调用，此为<strong>实例方法调用</strong>。</li>
-<li>当发送消息给类对象时，runtime函数会在<strong>此实例对象所属类的元类的方法列表</strong>中查找方法实例(IMP)并调用，此为<strong>类方法调用</strong>。</li>
+<li>Executable：应用的主要二进制</li>
+<li>Dylib：动态链接库</li>
+<li>Bundle：不能被链接，只能在运行时使用dlopen加载</li>
+<li>Image：包含Executable、Dylib和Bundle</li>
+<li>Framework：包含Dylib、资源文件和头文件的文件夹</li>
 </ul>
-<h3 id="延伸扩展"><a href="#延伸扩展" class="headerlink" title="延伸扩展"></a>延伸扩展</h3><p><strong>方法的调用流程</strong></p>
-<p>OC的方法调用本质上是给对象发送消息，即调用runtime的消息发送函数，如下所示：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="comment">/*</span></div><div class="line">	param: self(id) 接收消息的对象，</div><div class="line">	param: op(SEL)  发送的消息，即方法签名(@selector(method_name))</div><div class="line">*/</div><div class="line">id _<span class="function">Nullable  <span class="title">objc_msgSend</span><span class="params">(id _Nullable self, SEL _Nonnull op, ...)</span></span></div></pre></td></tr></table></figure>
-<p>通过对<code>objc_msgSend()</code>函数的源码分析，总结以下调用流程：</p>
+</blockquote>
+<ul>
+<li>如果是胖二进制文件，寻找合适当前CPU类别的部分</li>
+<li>加载所有依赖的Mach-O文件（递归调用Mach-O加载的方法）</li>
+<li>定位内部、外部指针引用，例如字符串、函数等</li>
+<li>执行声明为<code>__attribute__((constructor))</code>的C函数</li>
+<li>加载类扩展（Category）中的方法</li>
+<li>C++静态对象加载、调用ObjC的 <code>+load</code> 函数</li>
+</ul>
+</li>
+<li><p>程序执行</p>
+</li>
+<li><ul>
+<li>调用<code>main()</code></li>
+<li>调用<code>UIApplicationMain()</code></li>
+<li>调用<code>applicationWillFinishLaunching</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="测量App的启动时间"><a href="#测量App的启动时间" class="headerlink" title="测量App的启动时间"></a>测量App的启动时间</h3><p>iOS App的启动有两种方式：冷启动和热启动，下面对这两种启动方式进行简单介绍。</p>
+<p><strong>冷启动：</strong>App第一次启动或者是被上滑Kill掉之后，再次从点击App应用图标到App完全启动显示主页面为止的过程成为冷启动。</p>
+<p><strong>热启动：</strong>当用户从当前App按下HOME键退出后，系统并不会立即kill掉App的进程，还会继续后台执行一段时间(至于什么时候会被kill，完全取决于系统内存等资源的使用情况，理想情况下可以保持后台运行15min)。然后当用户再次点击App图标时，会很快加载到上次停留的页面，几乎不需要进行资源载入，这种情况下的启动成为热启动。</p>
+<p>下面我们对于App启动时间的测量只讨论在冷启动情形下。根据苹果官方介绍，iOS应用的启动分为两个阶段:<code>pre-main</code>和<code>main</code>，所以App启动的总时间为：Total Time = pre-main Time + main Time。</p>
+<h4 id="Pre-main-阶段"><a href="#Pre-main-阶段" class="headerlink" title="Pre-main 阶段"></a>Pre-main 阶段</h4><p>Pre-mian 阶段即<code>main()</code>函数被调用之前的加载时间，包括dylib动态库的加载、Mach-O文件加载、Rebase/Bining、Objective-C Runtime 加载等。该过程如下图所示：</p>
+<p><img src="http://lingyuncxb.com/2018/01/30/iOS%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96/04.png" alt="pre-main-img"></p>
+<h4 id="main-阶段"><a href="#main-阶段" class="headerlink" title="main 阶段"></a>main 阶段</h4><p>main 阶段指的是从调用<code>main()</code>函数开始，调用<code>UIApplicationMain()</code>创建<code>UIApplication,AppDelegate</code>，直到回调App代理方法<code>applicationDidBecomeActive:</code>为止，其中包括<code>application:didFinishLaunchingWithOptions</code>方法中创建<code>keyWindow</code>、三方sdk和其他初始化项所消耗的时间，也包含RootViewController 的 ChildViewController的view完全显示出来所花费的时间。该过程如下图所示：</p>
+<p><img src="http://lingyuncxb.com/2018/01/30/iOS%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96/05.png" alt="main-img"></p>
+<h4 id="pre-main-阶段时间测量"><a href="#pre-main-阶段时间测量" class="headerlink" title="pre-main 阶段时间测量"></a>pre-main 阶段时间测量</h4><p>那么对于<strong>pre-main</strong> 和 <strong>main</strong> 启动阶段的耗时如何测量呢？苹果已为我们提供了一个简单易用的测试方法：在Xcode中选中项目的<code>Scheme</code>→ <code>Edit Scheme...</code>→，然后选择<code>Run</code>→<code>Arguments</code>→<code>Environment Variables</code>中添加Name = <code>DYLD_PRINT_STATISTICSvalue</code>，Value = 1 的环境变量。如下图所示：</p>
+<p><img src="https://i.loli.net/2019/03/12/5c874f9e3f0de.png" alt="arguments-img"></p>
+<p>然后重新运行项目，注意控制台下面的打印输出，格式为：</p>
+<figure class="highlight swift"><table><tr><td class="code"><pre><div class="line"><span class="type">Total</span> pre-main time: <span class="number">655.68</span> milliseconds (<span class="number">100.0</span>%)</div><div class="line">         dylib loading time: <span class="number">205.67</span> milliseconds (<span class="number">31.3</span>%)</div><div class="line">        rebase/binding time: <span class="number">320.95</span> milliseconds (<span class="number">48.9</span>%)</div><div class="line">            <span class="type">ObjC</span> setup time:  <span class="number">63.07</span> milliseconds (<span class="number">9.6</span>%)</div><div class="line">           initializer time:  <span class="number">65.85</span> milliseconds (<span class="number">10.0</span>%)</div><div class="line">           slowest intializers :</div><div class="line">             libSystem.<span class="type">B</span>.dylib :   <span class="number">3.43</span> milliseconds (<span class="number">0.5</span>%)</div><div class="line">    libMainThreadChecker.dylib :  <span class="number">15.59</span> milliseconds (<span class="number">2.3</span>%)</div><div class="line">                       century :  <span class="number">76.56</span> milliseconds (<span class="number">11.6</span>%)</div><div class="line">                           </div><div class="line"><span class="comment">// 内容解读</span></div><div class="line"><span class="type">Total</span> pre-main time:  表示pre-main阶段总的时间消耗为<span class="number">655.68</span>毫秒</div><div class="line">dylib loading time:	 动态库加载时间</div><div class="line">rebase/binding time: 重定位指针指向/指向镜像外部内容 所需时间</div><div class="line"><span class="type">ObjC</span> setup time: <span class="type">ObjC</span>初始化时间</div><div class="line">initializer time: 其他初始化时间的总和</div><div class="line"></div><div class="line">slowest intializers : 最慢的三个初始化分别是libSystem.<span class="type">B</span>.dylib、libMainThreadChecker.dylib、century(项目名称)</div></pre></td></tr></table></figure>
+<h4 id="main-阶段时间测量"><a href="#main-阶段时间测量" class="headerlink" title="main 阶段时间测量"></a>main 阶段时间测量</h4><p>由于main阶段涉及到大量的自定义代码，app主体页面的初始化、前期配置、三方库初始化等大量逻辑代理，iOS系统没有直接的测量方式，所以只能通过打点的方式计算启动开始到启动结束的时间差即可。例如下面示例代码：</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line"><span class="comment">// main.m 文件</span></div><div class="line"><span class="meta">#import <span class="meta-string">&lt;UIKit/UIKit.h&gt;</span></span></div><div class="line"><span class="meta">#import <span class="meta-string">"AppDelegate.h"</span></span></div><div class="line"></div><div class="line"><span class="keyword">extern</span> <span class="built_in">CFAbsoluteTime</span> StartTime;</div><div class="line"></div><div class="line"><span class="keyword">int</span> main(<span class="keyword">int</span> argc, <span class="keyword">char</span> * argv[]) &#123;</div><div class="line">    <span class="comment">// 记录开始时间</span></div><div class="line">    StartTime = <span class="built_in">CFAbsoluteTimeGetCurrent</span>();</div><div class="line">    <span class="keyword">@autoreleasepool</span> &#123;</div><div class="line">        <span class="keyword">return</span> <span class="built_in">UIApplicationMain</span>(argc, argv, <span class="literal">nil</span>, <span class="built_in">NSStringFromClass</span>([AppDelegate <span class="keyword">class</span>]));</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// AppDelegate.m 文件</span></div><div class="line"></div><div class="line"><span class="built_in">CFAbsoluteTime</span> StartTime;</div><div class="line"></div><div class="line">- (<span class="keyword">void</span>)applicationDidBecomeActive:(<span class="built_in">UIApplication</span> *)application &#123;</div><div class="line">    <span class="built_in">dispatch_async</span>(dispatch_get_main_queue(), ^&#123;</div><div class="line">        <span class="built_in">NSUInteger</span> milliseconds = (<span class="built_in">NSUInteger</span>)((<span class="built_in">CFAbsoluteTimeGetCurrent</span>() - StartTime) * <span class="number">1000</span>);</div><div class="line">        <span class="built_in">NSLog</span>(<span class="string">@"Loading done in %lu ms"</span>, milliseconds);</div><div class="line">    &#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="影响启动性能的因素"><a href="#影响启动性能的因素" class="headerlink" title="影响启动性能的因素"></a>影响启动性能的因素</h3><p>接下来我们讨论在App启动的pre-main阶段和mian阶段，影响启动性能的多种因素。</p>
+<h4 id="Pre-main-阶段-1"><a href="#Pre-main-阶段-1" class="headerlink" title="Pre-main 阶段"></a>Pre-main 阶段</h4><ul>
+<li>动态库加载越多，启动越慢。</li>
+<li>ObjC类越多，启动越慢</li>
+<li>C的constructor函数越多，启动越慢</li>
+<li>C++静态对象越多，启动越慢</li>
+<li>ObjC的<code>+load</code>方法使用越多，启动越慢</li>
+</ul>
+<p>我们尽量不要写<code>__attribute__((constructor))</code>的C函数，也尽量不要用到C++的静态对象；至于ObjC的<code>+load</code>方法，似乎大家已经习惯不用它了。任何情况下，能用<code>dispatch_once()</code>来完成的，就尽量不要用到以上的方法。</p>
+<h4 id="main-阶段-1"><a href="#main-阶段-1" class="headerlink" title="main 阶段"></a>main 阶段</h4><ul>
+<li>执行main()函数的耗时</li>
+<li>执行application:didFinishLaunchingWithOptions的耗时</li>
+<li>rootViewController及其childViewController的加载、view及其subviews的加载</li>
+</ul>
+<p>一般的App的主体UI架构是，<code>UITabbarViewController</code> 作为 <code>keyWindow</code>的根控制器，然后包含多个<code>ChildViewController</code>作为每个tab的根控制器。然而在<code>didFinishLaunchingWithOptions</code>代理方法中各控制器的初始化顺序是怎样的呢？</p>
+<p><strong>答案是：</strong></p>
 <ol>
-<li>检查 selector 是否需要忽略</li>
-<li>检查 target 是否为 nil，如果是 nil 就直接 cleanup，然后 return</li>
-<li>在 target 的 Class 中根据 selector 去找 IMP</li>
+<li><code>-[MQQTabBarController viewDidLoad]</code></li>
+<li><code>-[MQQTab1ViewController viewDidLoad]</code></li>
+<li><code>-[AppDelegate application:didFinishLaunchingWithOptions:]</code></li>
+<li><code>-[MQQTab2ViewController viewDidLoad]</code> （点击了第二个tab之后加载）</li>
+<li><code>-[MQQTab3ViewController viewDidLoad]</code> （点击了第三个tab之后加载）</li>
 </ol>
-<p><strong>寻找IMP的流程</strong></p>
+<p>从上面的加载过程可以看出，在main()方法之后的启动中，只要是对页面的渲染，要减少这个阶段的耗时需要在<code>viewDidLoad</code>方法中做优化，减少不必要的逻辑，视图尽量使用懒加载，使用异步方式加载网络数据。</p>
+<h3 id="启动时间优化"><a href="#启动时间优化" class="headerlink" title="启动时间优化"></a>启动时间优化</h3><p>苹果建议在400ms内完成pre-main 阶段的启动，App整体的启动时间不能超过20s，否则系统会被kill掉进程。</p>
+<p>由于每个App的体量和类型不一样，对应启动过程中配置的逻辑处理复杂程度也是皆不相同，所有没有一个标准的时间来衡量启动时间是否达到最优。但是可以从用户体验上下功夫预加载占位视图，数据缓存等都可以营造出加载速度提升的感觉。</p>
+<p>下面从实践的角度分析可优化的部分：</p>
+<p><strong>pre-main 阶段优化</strong></p>
 <ol>
-<li>在当前 class 的方法缓存里寻找（cache methodLists）</li>
-<li>找到了跳到对应的方法实现，没找到继续往下执行</li>
-<li>从当前 class 的 方法列表里查找（methodLists），找到了添加到缓存列表里，然后跳转到对应的方法实现；没找到继续往下执行</li>
-<li>从 superClass 的缓存列表和方法列表里查找，直到找到基类为止</li>
-<li>以上步骤还找不到 IMP，则进入<strong>消息动态处理</strong>和<strong>消息转发</strong>(<code>objc_msgForward</code>)流程，详见<a href="https://www.jianshu.com/p/5127ce0628be" target="_blank" rel="noopener">这篇文章</a></li>
+<li><p>移除不需要的动态库framework</p>
+</li>
+<li><p>移除不需要的类、未使用的变量、方法等</p>
+<blockquote>
+<p>对应项目中大量的文件，可以使用工具快速扫描整个项目找出未使用的类、变量、或方法。这里推荐一个开源工具 Fui 能准确的完成此任务，不足之处在于它处理不了动态库或静态库中提供的类，和C++ 的类模板。</p>
+<p>Fui使用方法：</p>
+<p>在终端中cd到项目根目录，然后执行<code>fui find</code>，就可以得到一个列表，可根据这个列表在Xcode中手动检查并删除无用代码。</p>
+</blockquote>
+</li>
+<li><p>合并功能类似的类和扩展（Category）</p>
+</li>
+<li><p><code>+load</code>方法中做的事情可以使用<code>dispatch_once()</code>来代替，因为<code>main()</code>方法被调用之前就会加载<code>+load</code>方法，会影响<code>pre-main</code>阶段启动事件。</p>
+</li>
+<li><p>压缩资源图片（对要求不高的图片可做压缩处理）</p>
+</li>
 </ol>
-<p>我们从<code>objc-class.mm</code> 官方源码中找到了寻找IMP的实现过程，如下：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><div class="line"><span class="function">IMP <span class="title">class_getMethodImplementation</span><span class="params">(Class cls, SEL sel)</span></span></div><div class="line">&#123;</div><div class="line">IMP imp;</div><div class="line"><span class="keyword">if</span> (!cls  ||  !sel) <span class="keyword">return</span> nil;</div><div class="line">imp = lookUpImpOrNil(cls, sel, nil,</div><div class="line">YES<span class="comment">/*initialize*/</span>, YES<span class="comment">/*cache*/</span>, YES<span class="comment">/*resolver*/</span>);</div><div class="line"><span class="comment">// Translate forwarding function to C-callable external version</span></div><div class="line"><span class="keyword">if</span> (!imp) &#123;</div><div class="line"><span class="keyword">return</span> _objc_msgForward;</div><div class="line">&#125;</div><div class="line"><span class="keyword">return</span> imp;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>main 阶段优化</strong></p>
+<ol>
+<li>优化<code>application: didFinishLaunchingWithOptions:</code>内部逻辑<ol>
+<li>各种业务请求配置更新，多个配置更新可合并为单个请求，部分业务的配置延后更新。</li>
+<li>对于新版本引导、广告闪屏逻辑，需要重构逻辑清晰</li>
+<li>数据迁移，对太旧的无用的逻辑可以删除，不需要立即处理的数据，改为后台加载</li>
+</ol>
+</li>
+<li>优化rootViewController加载：在启动过程中只加载tabbarVc，主Vc即可，而且主Vc中的<code>ViewDidLoad</code>方法中也只加载需要立即显示出来的view，其他视图均使用懒加载，数据进行异步加载。</li>
+</ol>
 <h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><blockquote>
-<p><a href="http://limbank.com/2018/03/09/post18/" target="_blank" rel="noopener">http://limbank.com/2018/03/09/post18/</a></p>
-<p><a href="https://tingxins.com/2017/05/metaclass-class-relationship/" target="_blank" rel="noopener">https://tingxins.com/2017/05/metaclass-class-relationship/</a></p>
+<p><a href="https://mp.weixin.qq.com/s/Kf3EbDIUuf0aWVT-UCEmbA" target="_blank" rel="noopener">iOS App 启动性能优化–腾讯Bugly</a></p>
+<p><a href="http://lingyuncxb.com/2018/01/30/iOS%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96/" target="_blank" rel="noopener">iOS启动优化—凌云的博客</a></p>
+<p>[<a href="http://yulingtianxia.com/blog/2016/10/30/Optimizing-App-Startup-Time/" target="_blank" rel="noopener">优化 App 的启动时间</a>]</p>
 </blockquote>
 
 
@@ -269,12 +311,12 @@
                 <ul class="pager">
                     
                         <li class="previous">
-                            <a href="/2019/03/02/iOS代码混淆之方法名替换(一)/" data-toggle="tooltip" data-placement="top" title="iOS代码混淆之方法名替换(一)">&larr; Previous Post</a>
+                            <a href="/2019/01/16/App常见崩溃分析/" data-toggle="tooltip" data-placement="top" title="App常见崩溃分析">&larr; Previous Post</a>
                         </li>
                     
                     
                         <li class="next">
-                            <a href="/2019/02/28/深入剖析Autorelease-Pool-自动释放池/" data-toggle="tooltip" data-placement="top" title="深入剖析Autorelease Pool (自动释放池)">Next Post &rarr;</a>
+                            <a href="/2018/12/23/反射的概念及应用/" data-toggle="tooltip" data-placement="top" title="反射的概念及应用">Next Post &rarr;</a>
                         </li>
                     
                 </ul>

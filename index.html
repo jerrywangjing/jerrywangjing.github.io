@@ -90,6 +90,13 @@
 
                         
                         <li>
+                            <a href="/archives/">Archives</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
                             <a href="/about/">About</a>
                         </li>
                         
@@ -98,13 +105,6 @@
                         
                         <li>
                             <a href="/tags/">Tags</a>
-                        </li>
-                        
-                    
-
-                        
-                        <li>
-                            <a href="/archives/">Archives</a>
                         </li>
                         
                     
@@ -265,6 +265,138 @@ iOS代码混淆之编译优化
 
 <div class="post-preview">
 
+    <a href="/2019/02/02/iOS页面卡顿及性能优化/">
+        <h2 class="post-title">
+            iOS页面卡顿及性能优化
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            卡顿产生的原因在屏幕成像的过程中，CPU和GPU的职责及CPU：负责对象的创建和销毁、对象属性的调整、布局计算、文本的计算和排版、图片的格式转换和解码、图像的绘制（Core Graphics）。
+GPU：负责变换、合成、纹理的渲染。
+CPU 把计算好的数据给 GPU，GPU 来渲染，渲染后的数据放在帧缓存（缓冲区，有两块缓冲区，前帧缓存和后帧缓存，协调使用，效率高）中。然后，视频控制器从缓冲......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jerry on
+        2019-02-02
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/2019/01/16/App常见崩溃分析/">
+        <h2 class="post-title">
+            App常见崩溃分析
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            前言在iOS开发调试过程中，我们会遇到很多崩溃问题，比如数组越界、容器中插入nil、或调用不存在的方法时都会出现崩溃现象。那么，为了能更好的应对并避免这些常见崩溃问题的发生，就是我们亟待需要解决的问题。下面我们将分析iOS开发中常见的几个崩溃，并结合示例给出这类问题的解决方案。
+NSInvalidArgumentException从字面上来看，是无效的参数异常，但是触发这个异常的场景还有很多......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jerry on
+        2019-01-16
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/2019/01/08/App启动分析与优化策略/">
+        <h2 class="post-title">
+            App启动分析与优化策略
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            启动过程分析
+解析Info.plist
+
+加载相关信息，例如闪屏
+沙箱建立、权限检查
+
+
+Mach-O加载
+
+Mach-O 文件：我们写的程序想要跑起来，肯定它的可执行文件格式要被操作系统所理解。比如ELF是Linux下的可执行文件格式，那么对于OS X / iOS来说，Mach-O 是其可执行文件格式。
+Mach-O格式主要包括以下几种文件类型：
+
+Executable：应用的主要二进制
+......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jerry on
+        2019-01-08
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/2018/12/23/反射的概念及应用/">
+        <h2 class="post-title">
+            反射的概念及应用
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            前言反射是指程序在运行时可以访问、检测、修改它本身状态或行为的一种能力。通常动态语言如ObjC具有这种特性。下面将介绍反射的特性以及在iOS中的应用举例。
+使用反射可以做什么
+反射的应用场景
+
+
+在运行时可以判断一个对象是否属于某个类、是否遵守某个协议、是否响应某个方法
+在运行时可以构造任意一个类、生成一个对象、得到一个方法
+在运行时动态调用一个方法
+
+ObjC中的反射由于ObjC的动态特性......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jerry on
+        2018-12-23
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
+    <a href="/2018/12/16/AppDelegate如何瘦身？/">
+        <h2 class="post-title">
+            AppDelegate如何瘦身？
+        </h2>
+        <h3 class="post-subtitle">
+            
+        </h3>
+        <div class="post-content-preview">
+            前言AppDelegate瘦身指的就是对AppDelegate类进行解耦和拆分。AppDelegate 作为整个应用程序的代理对象，处理应用程序的生命周期、根视图控制器初始化、应用级URL跳转、推送通知接收、网络配置、及其他第三方SDK初始化等工作。
+为了让AppDelegate内部代码简洁，逻辑清晰，则需要对其进行整理拆分。下面有几种瘦身方式：
+模块化管理通过一个模块化管理类，将AppDe......
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jerry on
+        2018-12-16
+    </p>
+
+</div>
+<hr>
+
+<div class="post-preview">
+
     <a href="/2018/11/03/VPS下搭建ownCloud云盘/">
         <h2 class="post-title">
             VPS下搭建ownCloud云盘
@@ -310,128 +442,16 @@ LAMP环境。ownCloud需要Web服务器，数据库和PHP才能正常工作。 �
 </div>
 <hr>
 
-<div class="post-preview">
-
-    <a href="/2018/09/07/RunLoop的实现原理及应用/">
-        <h2 class="post-title">
-            RunLoop的实现原理及应用
-        </h2>
-        <h3 class="post-subtitle">
-            
-        </h3>
-        <div class="post-content-preview">
-            什么是RunLoop?为了保证线程能随时处理事件且不会退出，我们需要一个run loop 运行循环来一直保持能持续接收并处理各种事件，确保执行线程不被销毁。实现思路类似于如下代码：
-// Event loopfunction loop() &#123;    initialize();    do &#123;        var message = get_next_message();......
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Jerry on
-        2018-09-07
-    </p>
-
-</div>
-<hr>
-
-<div class="post-preview">
-
-    <a href="/2018/08/28/深入剖析Autorelease-Pool-自动释放池/">
-        <h2 class="post-title">
-            深入剖析Autorelease Pool (自动释放池)
-        </h2>
-        <h3 class="post-subtitle">
-            
-        </h3>
-        <div class="post-content-preview">
-            前言在MRC的内存管理模式下，可以将创建的对象加入自动释放池，程序员则无需手动调用release方法来释放对象，而是当自动释放池销毁的时候会对其中的每一个对象发送release消息，从而达到自动释放的目的。下面我们一步步揭开它的神秘面纱，深度剖析autoreleasepool的实现原理。
-@autoreleasepool 实现原理main.m文件中的@autoreleasepool()
-在i......
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Jerry on
-        2018-08-28
-    </p>
-
-</div>
-<hr>
-
-<div class="post-preview">
-
-    <a href="/2018/07/08/离屏渲染知多少/">
-        <h2 class="post-title">
-            离屏渲染知多少?
-        </h2>
-        <h3 class="post-subtitle">
-            
-        </h3>
-        <div class="post-content-preview">
-            预备知识OpenGL中，GPU屏幕渲染有两种方式:
-On-Screen Rendering (当前屏幕渲染)：指的是GPU的渲染操作是在当前用于显示的屏幕缓冲区进行。
-Off-Screen Rendering (离屏渲染)：指的是在GPU在当前屏幕缓冲区以外开辟一个缓冲区进行渲染操作。
-
-当前屏幕渲染不需要额外创建新的缓存，也不需要开启新的上下文，相对于离屏渲染性能更好。但是受当前屏幕渲染的......
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Jerry on
-        2018-07-08
-    </p>
-
-</div>
-<hr>
-
-<div class="post-preview">
-
-    <a href="/2018/06/07/iOS中各种“锁”的理解及应用/">
-        <h2 class="post-title">
-            iOS中各种“锁”的理解及应用
-        </h2>
-        <h3 class="post-subtitle">
-            
-        </h3>
-        <div class="post-content-preview">
-            前言通常在一般的iOS应用开发中会很少碰到使用“锁”的业务逻辑，但是在需要使用多线程技术，解决大多数场景写的业务逻辑时，会使用到线程锁来保证临界数据的读写安全性。当然，“锁”的概念在计算机科学及应用中也是举足轻重的，对于要写出高质量、高性能、安全可靠的代码来说，也是非常重要的。
-预备知识
-线程调度
-计算机通常只有一个CPU,在任意时刻只能执行一条机器指令,每个线程只有获得CPU的使用权才能执......
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Jerry on
-        2018-06-07
-    </p>
-
-</div>
-<hr>
-
-<div class="post-preview">
-
-    <a href="/2018/05/28/对象、类、元类、isa指针之间的爱恨情仇/">
-        <h2 class="post-title">
-            对象、类、元类、isa指针之间的爱恨情仇
-        </h2>
-        <h3 class="post-subtitle">
-            
-        </h3>
-        <div class="post-content-preview">
-            前言在iOS开发中，对象、类的使用可以说是无处不在，伴随着整个项目的开发周期，也是程序的重要组成部分。但是在日常开发中，很难直观的见到元类、isa指针，那么它们究竟是谁，在开发中起着什么作用呢？下面我们就分别介绍下这几位亲兄弟的结构体定义，以及之间的关联关系。
-类(class)的结构体定义类对象(Class)是由程序员定义并在运行时有编译器创建的，他没有自己的实例变量，这里需要注意的是类的成......
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Jerry on
-        2018-05-28
-    </p>
-
-</div>
-<hr>
-
 
 
 <!-- Pager -->
 
 <ul class="pager">
     
+    
+        <li class="next">
+            <a href="/page/2/">Older Posts &rarr;</a>
+        </li>
     
 </ul>
 
@@ -457,11 +477,13 @@ Off-Screen Rendering (离屏渲染)：指的是在GPU在当前屏幕缓冲区以
                     <div class="tags">
                         
                             
-                        
+                            <a href="/tags/#iOS" title="iOS" rel="13">iOS</a>
                             
                         
                             
-                            <a href="/tags/#iOS" title="iOS" rel="8">iOS</a>
+                        
+                            
+                        
                             
                         
                             
