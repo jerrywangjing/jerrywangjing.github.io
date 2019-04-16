@@ -90,13 +90,6 @@
 
                         
                         <li>
-                            <a href="/archives/">Archives</a>
-                        </li>
-                        
-                    
-
-                        
-                        <li>
                             <a href="/about/">About</a>
                         </li>
                         
@@ -105,6 +98,13 @@
                         
                         <li>
                             <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archives/">Archives</a>
                         </li>
                         
                     
@@ -219,7 +219,7 @@
 </ol>
 <h4 id="可能遇到的问题"><a href="#可能遇到的问题" class="headerlink" title="可能遇到的问题"></a>可能遇到的问题</h4><ol>
 <li><p>编译过程中报错，内容如下：</p>
-<figure class="highlight stylus"><table><tr><td class="code"><pre><div class="line">Undefined symbols <span class="keyword">for</span> architecture arm64:</div><div class="line">  <span class="string">"___isOSVersionAtLeast"</span>, referenced from:</div><div class="line">      -[MyLayoutPos posNumVal] <span class="keyword">in</span> MyLayoutPos<span class="selector-class">.o</span></div><div class="line">      -[MyLayoutViewSizeClass myLayoutTopPadding] <span class="keyword">in</span> MyLayoutSizeClass<span class="selector-class">.o</span></div><div class="line">      -[MyLayoutViewSizeClass myLayoutBottomPadding] <span class="keyword">in</span> MyLayoutSizeClass<span class="selector-class">.o</span></div><div class="line">      -[MyLayoutViewSizeClass myLayoutLeadingPadding] <span class="keyword">in</span> MyLayoutSizeClass<span class="selector-class">.o</span></div><div class="line">      -[MyLayoutViewSizeClass myLayoutTrailingPadding] <span class="keyword">in</span> MyLayoutSizeClass<span class="selector-class">.o</span></div><div class="line">      _HikariFunctionWrapper.<span class="number">7182</span> <span class="keyword">in</span> MyLayoutSizeClass<span class="selector-class">.o</span></div><div class="line">      _HikariFunctionWrapper.<span class="number">7188</span> <span class="keyword">in</span> MyLayoutSizeClass<span class="selector-class">.o</span></div><div class="line">      ...</div><div class="line">ld: symbol(s) not found <span class="keyword">for</span> architecture arm64</div><div class="line">clang-<span class="number">7</span>: error: linker command failed with exit <span class="selector-tag">code</span> <span class="number">1</span> (use -v to see invocation)</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">Undefined symbols for architecture arm64:</div><div class="line">  &quot;___isOSVersionAtLeast&quot;, referenced from:</div><div class="line">      -[MyLayoutPos posNumVal] in MyLayoutPos.o</div><div class="line">      -[MyLayoutViewSizeClass myLayoutTopPadding] in MyLayoutSizeClass.o</div><div class="line">      -[MyLayoutViewSizeClass myLayoutBottomPadding] in MyLayoutSizeClass.o</div><div class="line">      -[MyLayoutViewSizeClass myLayoutLeadingPadding] in MyLayoutSizeClass.o</div><div class="line">      -[MyLayoutViewSizeClass myLayoutTrailingPadding] in MyLayoutSizeClass.o</div><div class="line">      _HikariFunctionWrapper.7182 in MyLayoutSizeClass.o</div><div class="line">      _HikariFunctionWrapper.7188 in MyLayoutSizeClass.o</div><div class="line">      ...</div><div class="line">ld: symbol(s) not found for architecture arm64</div><div class="line">clang-7: error: linker command failed with exit code 1 (use -v to see invocation)</div></pre></td></tr></table></figure>
 </li>
 </ol>
 <p><code>&quot;___isOSVersionAtLeast&quot;</code>符号在arm64架构下找不到，根据以往的经验，出现这种错误的时候一般都是没有导入相关动态库(.Framework)，或静态库(.a)等造成的。庆幸的是已经有人在GitHub上提交了issues并给出了解决方案：</p>

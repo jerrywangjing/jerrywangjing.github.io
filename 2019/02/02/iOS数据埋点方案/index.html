@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A developer">
+    <meta name="keyword"  content="Jerry, wangjing, Jerry&#39;s Blog, 博客, 个人博客, iOS, 移动互联网, 开发">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>
+        
+          iOS数据埋点方案 - Jerry的博客 | Jerry&#39;s Blog
+        
+    </title>
+
+    <link rel="canonical" href="https://jerrywangjing.github.io/2019/02/02/iOS数据埋点方案/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/hux-blog.min.css">
+
+    <!-- Pygments Highlight CSS -->
+    <link rel="stylesheet" href="/css/highlight.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Hux change font-awesome CDN to qiniu -->
+    <link href="https://cdn.staticfile.org/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- Hux Delete, sad but pending in China
+    <link href='http://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/
+    css'>
+    -->
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Jerry&#39;s Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <!-- Known Issue, found by Hux:
+            <nav>'s height woule be hold on by its content.
+            so, when navbar scale out, the <nav> will cover tags.
+            also mask any touch event of tags, unfortunately.
+        -->
+        <div id="huxblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+
+                    
+
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/about/">About</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archives/">Archives</a>
+                        </li>
+                        
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#huxblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    $toggle.addEventListener('click', handleMagic)
+    function handleMagic(e){
+        if ($navbar.className.indexOf('in') > 0) {
+        // CLOSE
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        }else{
+        // OPEN
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+</script>
+
+
+    <!-- Main Content -->
+    
+<!-- Image to hack wechat -->
+<!-- <img src="https://jerrywangjing.github.io/img/icon_wechat.png" width="0" height="0"> -->
+<!-- <img src="{{ site.baseurl }}/{% if page.header-img %}{{ page.header-img }}{% else %}{{ site.header-img }}{% endif %}" width="0" height="0"> -->
+
+<!-- Post Header -->
+<style type="text/css">
+    header.intro-header{
+        background-image: url('/img/home-bg.jpg')
+    }
+</style>
+<header class="intro-header" >
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                          <a class="tag" href="/tags/#iOS" title="iOS">iOS</a>
+                        
+                    </div>
+                    <h1>iOS数据埋点方案</h1>
+                    <h2 class="subheading"></h2>
+                    <span class="meta">
+                        Posted by Jerry on
+                        2019-02-02
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <h4 id="代码埋点"><a href="#代码埋点" class="headerlink" title="代码埋点"></a>代码埋点</h4><p>代码埋点是一种常规且直观的方案，需要开发人员在需要埋点的页面或点击事件的响应方法中注入埋点统计相关方法进行数据统计上报。也可以接入三方统计分析SDK来实现，比如友盟<code>UMCAnalytics</code>统计分析库。实现方式如下代码所示：</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line"><span class="comment">// 通过在HomeViewController 中的“页面已显示”和“页面已消失”两个回调中注入统计代码实现埋点</span></div><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">HomeViewController</span></span></div><div class="line"><span class="comment">//...other methods</span></div><div class="line">- (<span class="keyword">void</span>)viewDidAppear:(<span class="built_in">BOOL</span>)animated</div><div class="line">&#123;</div><div class="line">    [<span class="keyword">super</span> viewWillAppear:animated];</div><div class="line">    [WUserStatistics sendEventToServer:<span class="string">@"PAGE_EVENT_HOME_ENTER"</span>];</div><div class="line">&#125;</div><div class="line"> </div><div class="line">- (<span class="keyword">void</span>)viewDidDisappear:(<span class="built_in">BOOL</span>)animated</div><div class="line">&#123;</div><div class="line">    [<span class="keyword">super</span> viewDidDisappear:animated];</div><div class="line">    [WUserStatistics sendEventToServer:<span class="string">@"PAGE_EVENT_HOME_LEAVE"</span>];</div><div class="line">&#125;</div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure>
+<p>这种埋点方式虽然实现起来简单，但是有很多缺点造成无法在实际项目中使用，如果需要埋点的页面很多，会增大工作量，代码侵入性太强，且不易于后期维护。</p>
+<h4 id="无埋点-无痕埋点"><a href="#无埋点-无痕埋点" class="headerlink" title="无埋点(无痕埋点)"></a>无埋点(无痕埋点)</h4><p>通过Runtime的Method Swizzling 特性使用 AOP面向切面编程的思想 hook住系统关键方法，注入埋点代理实现统计上报功能。这种方式对项目没有侵入性，可以对某个控件进行全局埋点，使用更灵活。</p>
+<p>比如我们要对某个页面的打开次数做统计，那么可以对<code>UIViewController</code>添加分类<code>UIViewController+userStastistics</code>来对控制器的<code>viewWillAppear:</code>方法进行hook，注入次数统计代码，代码示例如下：</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line"><span class="comment">// UIViewController 的分类</span></div><div class="line"><span class="class"><span class="keyword">@implementation</span> <span class="title">UIViewController</span> (<span class="title">userStastistics</span>)</span></div><div class="line">+ (<span class="keyword">void</span>)load &#123;</div><div class="line">    <span class="keyword">static</span> <span class="built_in">dispatch_once_t</span> onceToken;</div><div class="line">    <span class="built_in">dispatch_once</span>(&amp;onceToken, ^&#123;</div><div class="line">        SEL originalSelector = <span class="keyword">@selector</span>(viewWillAppear:);</div><div class="line">        SEL swizzledSelector = <span class="keyword">@selector</span>(swiz_viewWillAppear:);</div><div class="line">        <span class="comment">// 使用hook工具(内部使用Method swizzing技术实现)交换两个方法的实现(IMP)</span></div><div class="line">        [HookUtility swizzlingInClass:[<span class="keyword">self</span> <span class="keyword">class</span>] originalSelector:originalSelector swizzledSelector:swizzledSelector];</div><div class="line">    &#125;);</div><div class="line">&#125;</div><div class="line"><span class="meta">#pragma mark - Method Swizzling</span></div><div class="line">- (<span class="keyword">void</span>)swiz_viewWillAppear:(<span class="built_in">BOOL</span>)animated</div><div class="line">&#123;   </div><div class="line">    <span class="comment">// 注意：此行代码的调用实质上执行的是viewWillAppear: 的原生实现</span></div><div class="line">    [<span class="keyword">self</span> swiz_viewWillAppear:animated];</div><div class="line">    </div><div class="line">    <span class="comment">// 添加埋点统计代码，用于记录页面打开次数</span></div><div class="line">    Add your custom Analytics code.</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">@end</span></div></pre></td></tr></table></figure>
+<p>上述代码就可以实现无侵入性的数据埋点，但是这种方法会对所有<code>UIViewController</code>及其子类的<code>viewWillAppear:</code>方法进行hook代码注入，也就是说所有页面都会被统计进去，为了实现部分页面的统计，可以进行过滤，或使用白名单。</p>
+<h4 id="事件唯一ID的确定"><a href="#事件唯一ID的确定" class="headerlink" title="事件唯一ID的确定"></a>事件唯一ID的确定</h4><p>在对事件进行上报的时候，需要对事件进行标记，我们可以创建一个plist配置表对每个事件定义一个唯一标识符、事件id、相关参数等信息，然后在埋点响应方法中通过获取事件发生的类名或方法名来确定事件，并上传到统计服务器。</p>
+<h4 id="AOP编程"><a href="#AOP编程" class="headerlink" title="AOP编程"></a>AOP编程</h4><p>Aspect Oriented Programming （AOP）是面向切面编程，利用AOP可以对业务逻辑的各个部分进行隔离，从而使得业务逻辑各部分之间的耦合度降低，提高程序的可重用性，同时提高了开发的效率。实现方式如下图所示：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1283539-4b7bde32a77be093.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="img1"></p>
+<p>AOP的主要功能是：日志记录、性能统计、安全控制、事务处理、异常处理等。</p>
+<p>主要的意图是：将日志记录，性能统计，安全控制，事务处理，异常处理等代码从业务逻辑代码中划分出来，通过对这些行为的分离，我们希望可以将它们独立到非指导业务逻辑的方法中，进而改  变这些行为的时候不影响业务逻辑的代码。</p>
+<p>可以通过预编译方式和运行期动态代理实现在不修改源代码的情况下给程序动态统一添加功能的一种技术。AOP是横向切入系统，提取各个模块可能都要重复操作的部分（如：权限检查，日志记录等等），是OOP的一个有效补充。</p>
+<p>在iOS开发中，<strong>Aspects</strong>三方库就是基于AOP的思想来实现的，内部使用了ObjC动态特性Method swizzling Hook住原生方法注入block中的自定义代码。通过使用这个库，可以简单高效的实现无埋点数据统计。</p>
+<h4 id="无埋点采集"><a href="#无埋点采集" class="headerlink" title="无埋点采集"></a>无埋点采集</h4><p>下面我们将介绍几种常用的UI控件的事件采集方式，分别可以这样实现：</p>
+<h5 id="UIViewController"><a href="#UIViewController" class="headerlink" title="UIViewController"></a>UIViewController</h5><p>主要是收集页面的生命周期，采用hook UIViewController的<code>viewWillAppear：</code>方法，将埋点代码插入到被替换的<code>xxx_viewWillAppear:</code>方法中，实现采集。</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line">[HookUtility swizzlingInClass:[<span class="keyword">self</span> <span class="keyword">class</span>] originalSelector:<span class="keyword">@selector</span>(viewWillAppear:)swizzledSelector:<span class="keyword">@selector</span>(xxx_viewWillAppear:)];</div></pre></td></tr></table></figure>
+<h5 id="UIControl"><a href="#UIControl" class="headerlink" title="UIControl"></a>UIControl</h5><p>针对UIControl，HubbleData采用的是hook UIControl的<code>sendAction:to:forEvent:</code>方法。由官方文档可知，在UIControl执行对应的action时都会首先调用<code>sendAction:to:forEvent:</code>方法，HubbleData的实现如下：</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line">[DASwizzler swizzleSendActionSelector:<span class="keyword">@selector</span>(sendAction:to:forEvent:)</div><div class="line">                              onClass:[<span class="built_in">UIControl</span> <span class="keyword">class</span>]</div><div class="line">                            withBlock:executeBlock];</div></pre></td></tr></table></figure>
+<p>考虑到UIControl的子类较多，所以HubbleData选取了其中使用较多的几种进行了特殊的分析：主要是UITextField、UIButton和UISwitch，其余的暂时未做特殊分析。具体的埋点的采集设计为：无论是哪种UIControl，EventID均采用的是第三部分介绍的唯一标识字符串的SHA256编码值，但是相关采集properties有所差别。</p>
+<h5 id="UITextField"><a href="#UITextField" class="headerlink" title="UITextField"></a>UITextField</h5><p>UITextField是UIControl的一个子类，由于UITextField涉及到用户的隐私比较多，比如用户名、密码、聊天文本等，所以HubbleData不会对此类的UITextField进行埋点的采集。</p>
+<p>HubbleData主要采集的是UISearchBar中的UITextField，即UISearchBarTextField，并获取搜索的文本内容，这对于一些电商类的App来说，能够较好的分析用户感兴趣的商品等，这是作为HubbleData SDK无埋点的一个需求。</p>
+<p>hook住<code>sendAction:to:forEvent:</code>后，如果对UISearchBarTextField的所有actions都进行hook的话，那么_searchFieldBeginEditing、_searchFieldEndEditing等所有的action发生的时候都会进行数据的采集，会采集到很多无用的信息，导致采集的数据混乱。HubbleData SDK只有当_searchFieldEndEditing action发生时才会进行埋点，收集的properties为：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">(1) type 为UIControl采集的事件类型，这里设置为searchBarEvent；</div><div class="line">(2) page 为当前页面的名称，用于前端显示用；</div><div class="line">(3) searchText 为_searchFieldEndEditing发生时采集到搜索框的搜索文字（此字段不为空）；</div></pre></td></tr></table></figure>
+<p>这样就能对搜索框进行无埋点采集，并能收集搜索的文本内容。此方法只是在_searchFieldEndEditing发生时采集数据，有可能该action执行时并未尽兴真正的搜索操作，可能会与业务数据库的数据有出入，但是也能够较为准确的分析用户感兴趣的搜索内容。</p>
+<h5 id="UIButton"><a href="#UIButton" class="headerlink" title="UIButton"></a>UIButton</h5><p>UIButton是最常见的一种UIControl，由于UIButton在使用过程中会有多种状态，所有在记录的时候需要上报更详细的参数，可以添加<code>titleColor</code>、<code>imageName</code>、<code>frame</code>等属性来做具体区分。</p>
+<h5 id="UISwitch"><a href="#UISwitch" class="headerlink" title="UISwitch"></a>UISwitch</h5><p>类似于UIButton，只不过这里要采集switchState，即当前的开关状态，具体的采集属性为：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><div class="line">(1) type 为UIControl采集的事件类型，这里设置为switchEvent；</div><div class="line">(2) page 为当前页面的名称，用于前端显示用；</div><div class="line">(3) switchState 为switch的开关状态；</div></pre></td></tr></table></figure>
+<h5 id="UITableView和UICollectionView"><a href="#UITableView和UICollectionView" class="headerlink" title="UITableView和UICollectionView"></a>UITableView和UICollectionView</h5><p>针对UITableView和UICollectionView，HubbleData采用的是先hook UITableView和UICoolectionView的<code>setDelegate:</code>方法，然后找到对应的delegate，然后再hook delegate类中的<code>tableView:didSelectRowAtIndexPath:</code>方法和UICollectionView的<code>collectionView:didSelectItemAtIndexPath:</code>方法。这里以UITableView为例：</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line"><span class="comment">//先hook setDelegate:方法</span></div><div class="line">[DASwizzler swizzleSelector:<span class="keyword">@selector</span>(setDelegate:)</div><div class="line">                    onClass:[<span class="built_in">UITableView</span> <span class="keyword">class</span>]</div><div class="line">                  withBlock:executeSetDelegateBlock];</div><div class="line"></div><div class="line"><span class="comment">//再hook delegate的tableView:didSelectRowAtIndexPath:方法</span></div><div class="line"><span class="keyword">void</span> (^executeSetDelegateBlock)(<span class="keyword">id</span>, SEL, <span class="keyword">id</span>) = ^(<span class="keyword">id</span> view, SEL command, <span class="keyword">id</span>&lt;<span class="built_in">UITableViewDelegate</span>&gt; delegate) &#123;</div><div class="line">        <span class="keyword">if</span> ([delegate respondsToSelector:<span class="keyword">@selector</span>(tableView:didSelectRowAtIndexPath:)]) &#123;</div><div class="line">            [DASwizzler swizzleSelector:<span class="keyword">@selector</span>(tableView:didSelectRowAtIndexPath:)</div><div class="line">                                onClass:[delegate <span class="keyword">class</span>]</div><div class="line">                              withBlock:executeBlock];</div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line"></div><div class="line"><span class="comment">// "executeBlock" block 中插入埋点代码</span></div></pre></td></tr></table></figure>
+<p>EventID按照上述介绍的方法获取，只不过这里要注意的是，获取的并不是UITableView的唯一标识字符串而是对应的点击的cell的唯一标识字符串。采集的properties为：</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line">(<span class="number">1</span>) type 为<span class="built_in">UITableView</span>采集的事件类型，这里设置为tableViewSelectEvent；</div><div class="line">(<span class="number">2</span>) page 为当前页面的名称，用于前端显示用；</div><div class="line">(<span class="number">3</span>) section 为点击的cell所在的section；</div><div class="line">(<span class="number">4</span>) row 为点击的cell所在的row；</div></pre></td></tr></table></figure>
+<h5 id="UIGestureRecognizer"><a href="#UIGestureRecognizer" class="headerlink" title="UIGestureRecognizer"></a>UIGestureRecognizer</h5><p>在iOS开发中，经常会使用一些手势来处理一些点击的操作，所以也有必要对UIGestureRecognizer进行hook。HubbleData 并不是直接针对UIGestureRecognizer这个类进行hook，而是hook UIView类的<code>addGestureRecognizer:</code>方法，实现如下：</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line"><span class="comment">// hook addGestureRecognizer： 方法</span></div><div class="line">[DASwizzler swizzleSelector:<span class="keyword">@selector</span>(addGestureRecognizer:)</div><div class="line">                    onClass:[<span class="built_in">UIView</span> <span class="keyword">class</span>]</div><div class="line">                  withBlock:executeBlock];</div><div class="line"></div><div class="line"><span class="comment">// 执行block 判断手势类型，并插入响应埋点代码</span></div><div class="line"><span class="keyword">void</span> (^executeBlock)(<span class="keyword">id</span>, SEL, <span class="keyword">id</span>) = ^(<span class="keyword">id</span> target, SEL command, <span class="keyword">id</span> arg) &#123;</div><div class="line">        <span class="keyword">if</span> ([arg isKindOfClass:[<span class="built_in">UITapGestureRecognizer</span> <span class="keyword">class</span>]] ||</div><div class="line">            [arg isKindOfClass:[<span class="built_in">UILongPressGestureRecognizer</span> <span class="keyword">class</span>]]) &#123;</div><div class="line">            [arg addTarget:<span class="keyword">self</span> action:<span class="keyword">@selector</span>(da_autoEventAction:)];</div><div class="line">            <span class="comment">//在本类下添加一个action的实现</span></div><div class="line">            ...........</div><div class="line">        &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>通过hook <code>addGestureRecognizer:</code>方法，可以得到该UIView所添加的UIGestureRecognizer，这里只对UITapGestureRecognizer和UILongPressGestureRecognizer进行处理，其他的手势暂未做处理。得到相应的UIGestureRecognizer，添加一个action，当该手势执行的时候，同样会执行该action，在action中执行埋点的操作。</p>
+<p>这里获取的是UIGestureRecognizer所在的UIView的唯一标识标识字符串编码作为EventID,采集的属性为：</p>
+<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line">(<span class="number">1</span>) type 为<span class="built_in">UIGestureRecognizer</span>采集的事件类型，这里设置为gestureTapEvent；</div><div class="line">(<span class="number">2</span>) page 为当前页面的名称，用于前端显示用；</div></pre></td></tr></table></figure>
+<h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4><blockquote>
+<p><a href="http://limbank.com/2018/03/01/post14/" target="_blank" rel="noopener">iOS数据埋点统计方案–陈满</a></p>
+<p><a href="http://ios.jobbole.com/85214/" target="_blank" rel="noopener">iOS动态性可复用而且高度解耦的用户统计埋点实现</a></p>
+<p><a href="https://neyoufan.github.io/2017/04/19/ios/%E7%BD%91%E6%98%93HubbleData%E6%97%A0%E5%9F%8B%E7%82%B9SDK%E5%9C%A8iOS%E7%AB%AF%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/" target="_blank" rel="noopener">网易HubbleData无埋点SDK在iOS端的设计与实现</a></p>
+</blockquote>
+
+
+                <hr>
+
+                
+
+                <ul class="pager">
+                    
+                        <li class="previous">
+                            <a href="/2019/03/02/iOS代码混淆之方法名替换(一)/" data-toggle="tooltip" data-placement="top" title="iOS代码混淆之方法名替换(一)">&larr; Previous Post</a>
+                        </li>
+                    
+                    
+                        <li class="next">
+                            <a href="/2019/02/02/iOS页面卡顿及性能优化/" data-toggle="tooltip" data-placement="top" title="iOS页面卡顿及性能优化">Next Post &rarr;</a>
+                        </li>
+                    
+                </ul>
+
+                
+
+                
+
+            </div>
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+                <section>
+                    <!-- no hr -->
+                    <h5><a href="/tags/">FEATURED TAGS</a></h5>
+                    <div class="tags">
+                       
+                          <a class="tag" href="/tags/#iOS" title="iOS">iOS</a>
+                        
+                    </div>
+                </section>
+                
+
+                <!-- Friends Blog -->
+                
+                <hr>
+                <h5>FRIENDS</h5>
+                <ul class="list-inline">
+
+                    
+                        <li><a href="http://huangxuan.me" target="_blank">Hux Blog</a></li>
+                    
+                        <li><a href="https://unsplash.com/" target="_blank">Unsplash</a></li>
+                    
+                </ul>
+                
+            </div>
+
+        </div>
+    </div>
+</article>
+
+
+
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("https://cdn.bootcss.com/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'always',
+          placement: 'right',
+          icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                
+                
+                    <li>
+                        <a target="_blank" href="https://twitter.com/jerrywangjing">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+                
+                    <li>
+                        <a target="_blank" href="https://www.zhihu.com/people/jing-wang-68-66">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa  fa-stack-1x fa-inverse">知</i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+                    <li>
+                        <a target="_blank" href="http://weibo.com/JerryWang">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-weibo fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                
+                    <li>
+                        <a target="_blank"  href="https://github.com/jerrywangjing">
+                            <span class="fa-stack fa-lg">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </li>
+                
+
+                
+
+                </ul>
+                <p class="copyright text-muted">
+                    Copyright &copy; Jerry&#39;s Blog 2019 
+                    <br>
+                    Theme by <a href="http://huangxuan.me">Hux</a> 
+                    <span style="display: inline-block; margin: 0 5px;">
+                        <i class="fa fa-heart"></i>
+                    </span> 
+                    Ported by <a href="http://blog.kaijun.rocks">Kaijun</a> | 
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="91px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=kaijun&repo=hexo-theme-huxblog&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="/js/bootstrap.min.js"></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/hux-blog.min.js"></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!-- 
+     Because of the native support for backtick-style fenced code blocks 
+     right within the Markdown is landed in Github Pages, 
+     From V1.6, There is no need for Highlight.js, 
+     so Huxblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0  
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/    
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+<!-- jquery.tagcloud.js -->
+<script>
+    // only load tagcloud.js in tag.html
+    if($('#tag_cloud').length !== 0){
+        async("https://jerrywangjing.github.io/js/jquery.tagcloud.js",function(){
+            $.fn.tagcloud.defaults = {
+                //size: {start: 1, end: 1, unit: 'em'},
+                color: {start: '#bbbbee', end: '#0085a1'},
+            };
+            $('#tag_cloud a').tagcloud();
+        })
+    }
+</script>
+
+<!--fastClick.js -->
+<script>
+    async("https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+
+<script>
+    // dynamic User by Hux
+    var _gaId = 'UA-136960405-1';
+    var _gaDomain = 'auto';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+
+<!-- Baidu Tongji -->
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+        var P = $('div.post-container'),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;    
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Hux to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+
+
+<!-- Image to hack wechat -->
+<img src="https://jerrywangjing.github.io/img/icon_wechat.png" width="0" height="0" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>

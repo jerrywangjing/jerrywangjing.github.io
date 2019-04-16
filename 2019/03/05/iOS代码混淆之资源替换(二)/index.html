@@ -90,13 +90,6 @@
 
                         
                         <li>
-                            <a href="/archives/">Archives</a>
-                        </li>
-                        
-                    
-
-                        
-                        <li>
                             <a href="/about/">About</a>
                         </li>
                         
@@ -105,6 +98,13 @@
                         
                         <li>
                             <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archives/">Archives</a>
                         </li>
                         
                     
@@ -213,7 +213,7 @@
 <li>删除代码中的所有注释和空行。</li>
 </ul>
 <p>由于在使用此工具之前，需要先配置修改参数，通过这些参数程序可以自动的修改项目中所需的内容，下面是从使用的角度对各项参数的解释：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><div class="line"><span class="meta">#</span><span class="bash"> 1. 项目名地址，注意：不是项目文件夹地址，是项目名那个目录</span></div><div class="line">/Users/jerry/Desktop/testProject0/century</div><div class="line"><span class="meta">#</span><span class="bash"> 2. 修改项目名称，注意：放到最后修改,因为其他的修改需要依赖这个目录来查找</span></div><div class="line">-modifyProjectName century&gt;actualbyte</div><div class="line"><span class="meta">#</span><span class="bash"> 3. 忽略文件夹，对添加的文件夹内的文件不执行修改。注意：多个文件夹之间用逗号隔开</span></div><div class="line">-ignoreDirNames ThirdPartLib,Tools,Category,Utils,MacrosDefine,Main,Resource,Support Files</div><div class="line"><span class="meta">#</span><span class="bash"> 4. 修改类名前缀。没有前缀的会加上前缀，有前缀的会修改。注意：修改后是否重名</span></div><div class="line">-modifyClassNamePrefix /Users/jerry/Desktop/testProject0/century.xcodeproj CG&gt;WB</div><div class="line"><span class="meta">#</span><span class="bash"> 5. 生成垃圾代码，注意：生成后的垃圾代码，需要拖入到工程目录中，如有报错可以自己修改或删除</span></div><div class="line">-spamCodeOut /Users/jerry/Desktop/testProject0/SpamCode WBLog</div><div class="line"><span class="meta">#</span><span class="bash"> 6. 修改 xxx.xcassets 文件夹中的 png 资源文件名，必须指定(<span class="comment">#1)的地址为xcassets所在的目录，才能生效。注意：此修改不会影响代码中图片的引用名称，只是对资源实体名和json配置文件中的修改。</span></span></div><div class="line">-handleXcassets</div><div class="line"><span class="meta">#</span><span class="bash"> 7. 删除空行和注释 ，在项目根目录下运行，无效果可以单独运行一次。</span></div><div class="line">-deleteComments</div></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="code"><pre><div class="line"><span class="meta">#</span> 1. 项目名地址，注意：不是项目文件夹地址，是项目名那个目录</div><div class="line">/Users/jerry/Desktop/testProject0/century</div><div class="line"><span class="meta">#</span> 2. 修改项目名称，注意：放到最后修改,因为其他的修改需要依赖这个目录来查找</div><div class="line">-modifyProjectName century&gt;actualbyte</div><div class="line"><span class="meta">#</span> 3. 忽略文件夹，对添加的文件夹内的文件不执行修改。注意：多个文件夹之间用逗号隔开</div><div class="line">-ignoreDirNames ThirdPartLib,Tools,Category,Utils,MacrosDefine,Main,Resource,Support Files</div><div class="line"><span class="meta">#</span> 4. 修改类名前缀。没有前缀的会加上前缀，有前缀的会修改。注意：修改后是否重名</div><div class="line">-modifyClassNamePrefix /Users/jerry/Desktop/testProject0/century.xcodeproj CG&gt;WB</div><div class="line"><span class="meta">#</span> 5. 生成垃圾代码，注意：生成后的垃圾代码，需要拖入到工程目录中，如有报错可以自己修改或删除</div><div class="line">-spamCodeOut /Users/jerry/Desktop/testProject0/SpamCode WBLog</div><div class="line"><span class="meta">#</span> 6. 修改 xxx.xcassets 文件夹中的 png 资源文件名，必须指定(#1)的地址为xcassets所在的目录，才能生效。注意：此修改不会影响代码中图片的引用名称，只是对资源实体名和json配置文件中的修改。</div><div class="line">-handleXcassets</div><div class="line"><span class="meta">#</span> 7. 删除空行和注释 ，在项目根目录下运行，无效果可以单独运行一次。</div><div class="line">-deleteComments</div></pre></td></tr></table></figure>
 <p>上述的参数需要在下载的KLGenerateSpamCode工具目录中配置，如下图：</p>
 <p>​<img src="https://github.com/klaus01/KLGenerateSpamCode/raw/master/images/p2.png" alt="img1"></p>
 <p>参数配置好之后，Run 运行项目即可实现修改。另外，如果包含pod，需要到原项目文件夹下中执行<code>pod update</code>更新。</p>
