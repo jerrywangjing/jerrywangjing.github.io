@@ -13,11 +13,11 @@
 
     <title>
         
-          AppDelegate如何瘦身？ - Jerry的博客 | Jerry&#39;s Blog
+          LLVM架构与Clang - Jerry的博客 | Jerry&#39;s Blog
         
     </title>
 
-    <link rel="canonical" href="https://jerrywangjing.github.io/2018/12/16/AppDelegate如何瘦身？/">
+    <link rel="canonical" href="https://jerrywangjing.github.io/2019/05/19/LLVM架构与Clang/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -165,14 +165,12 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                          <a class="tag" href="/tags/#iOS" title="iOS">iOS</a>
-                        
                     </div>
-                    <h1>AppDelegate如何瘦身？</h1>
+                    <h1>LLVM架构与Clang</h1>
                     <h2 class="subheading"></h2>
                     <span class="meta">
                         Posted by Jerry on
-                        2018-12-16
+                        2019-05-19
                     </span>
                 </div>
             </div>
@@ -191,32 +189,7 @@
                 col-md-10 col-md-offset-1
                 post-container">
 
-                <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>AppDelegate瘦身指的就是对AppDelegate类进行解耦和拆分。AppDelegate 作为整个应用程序的代理对象，处理应用程序的生命周期、根视图控制器初始化、应用级URL跳转、推送通知接收、网络配置、及其他第三方SDK初始化等工作。</p>
-<p>为了让AppDelegate内部代码简洁，逻辑清晰，则需要对其进行整理拆分。下面有几种瘦身方式：</p>
-<h4 id="模块化管理"><a href="#模块化管理" class="headerlink" title="模块化管理"></a>模块化管理</h4><p>通过一个模块化管理类，将AppDelegate中的职责拆分至各个模块中去处理，简化了AppDelegate内部代码。</p>
-<p><strong>FRDModuleManager</strong>就是一个模块化管理工具，通过在<code>UIApplicationDelegate</code>各代理方法中留下钩子，当代理回调时，会将任务分发到各自模块中。实现原理如下图所示：</p>
-<p><img src="http://images.kyson.cn/delegate/appdelegate_04.jpg" alt="img1"></p>
-<p>优点：</p>
-<ul>
-<li>简单，只需要几行代码就可以解决。</li>
-<li>被添加的每个模块都可以“享受”AppDelegate的各个生命周期。</li>
-</ul>
-<p>缺点：</p>
-<ul>
-<li>每个模块都要初始化并分配内存，当<code>FRDModuleManager</code>里注册了大量模块时，会创建大量对象并影响App启动速度。</li>
-<li>缺少模块初始化优先级，当有三个模块A,B,C时，正好C依赖于B，B依赖于A，如果在配置文件中配置A，B，C的顺序又是打乱时，初始化会出问题。</li>
-</ul>
-<h4 id="AppDelegate-Service-分类"><a href="#AppDelegate-Service-分类" class="headerlink" title="AppDelegate+Service 分类"></a>AppDelegate+Service 分类</h4><p>通过对AppDelegate 添加相应的分类来处理不同的初始化需求，在AppDelegate中调用处理方法，也可以控制调用顺序。 比如：<code>AppDelegate+AppService</code> 处理RootViewController的初始化，网络及三方sdk的初始化等任务，<code>AppDelegate+RemotePush</code>来处理远程推送相关的逻辑。</p>
-<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line"><span class="comment">// 初始化window</span></div><div class="line">[<span class="keyword">self</span> initWindow];</div><div class="line"></div><div class="line"><span class="comment">// 初始化app服务</span></div><div class="line">[<span class="keyword">self</span> initService];</div><div class="line"></div><div class="line"><span class="comment">// 启动app</span></div><div class="line">[kCGAppManager appStart];</div></pre></td></tr></table></figure>
-<p>使用分类的优势是没有侵入性，易于维护，结构清晰。缺点是无法直接对分类添加属性，降低了使用灵活性，不过也可以通过RunTime添加关联属性的方式来解决，但是一般情况下不推荐使用。</p>
-<h4 id="URL路由分发"><a href="#URL路由分发" class="headerlink" title="URL路由分发"></a>URL路由分发</h4><p>从App架构层面对AppDelegate进行解耦瘦身，可以使用全局路由来实现页面跳转、通知、逻辑处理等任务。通过注册url，然后调用对应的url和参数实现页面跳转。</p>
-<p><strong>JLRoutes</strong>是一个优秀的URL解析库，可以很方便的处理不同<code>URL Scheme</code>以及解析它们的参数，并通过回调block来处理URL对应的操作。</p>
-<figure class="highlight objc"><table><tr><td class="code"><pre><div class="line"><span class="comment">// 注册路由</span></div><div class="line">[routes addRoute:<span class="string">@"/user/view/:userID"</span> handler:^<span class="built_in">BOOL</span>(<span class="built_in">NSDictionary</span> *parameters) &#123;</div><div class="line">    <span class="built_in">NSString</span> *userID = parameters[<span class="string">@"userID"</span>]; <span class="comment">// defined in the route by specifying ":userID"</span></div><div class="line"></div><div class="line">    <span class="comment">// present UI for viewing user with ID 'userID'</span></div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="literal">YES</span>; <span class="comment">// return YES to say we have handled the route</span></div><div class="line">  &#125;];</div><div class="line"><span class="comment">// 执行路由</span></div><div class="line">[JLRoutes routeURL:<span class="string">@"/user/view?userID=123"</span>];</div></pre></td></tr></table></figure>
-<p>但是由于<a href="https://github.com/joeldev/JLRoutes" target="_blank" rel="noopener">JLRoutes</a>的内部实现中对应查找URL使用了遍历的方式，时间效率比较低。GitHub上的另一种库<a href="https://github.com/meili/MGJRouter" target="_blank" rel="noopener">MGJRouter</a>解决了这个问题，使用了匹配查找的方式调高了库的运行效率，可参看使用。</p>
-<h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4><blockquote>
-<p><a href="https://kyson.cn/index.php/archives/105/" target="_blank" rel="noopener">AppDelegate瘦身指南</a></p>
-</blockquote>
-
+                
 
                 <hr>
 
@@ -224,13 +197,9 @@
 
                 <ul class="pager">
                     
-                        <li class="previous">
-                            <a href="/2018/12/23/反射的概念及应用/" data-toggle="tooltip" data-placement="top" title="反射的概念及应用">&larr; Previous Post</a>
-                        </li>
-                    
                     
                         <li class="next">
-                            <a href="/2018/11/03/VPS下搭建ownCloud云盘/" data-toggle="tooltip" data-placement="top" title="VPS下搭建ownCloud云盘">Next Post &rarr;</a>
+                            <a href="/2019/03/10/iOS代码混淆之编译优化(三)/" data-toggle="tooltip" data-placement="top" title="iOS代码混淆之编译优化(三)">Next Post &rarr;</a>
                         </li>
                     
                 </ul>
@@ -271,8 +240,6 @@
                     <h5><a href="/tags/">FEATURED TAGS</a></h5>
                     <div class="tags">
                        
-                          <a class="tag" href="/tags/#iOS" title="iOS">iOS</a>
-                        
                     </div>
                 </section>
                 
