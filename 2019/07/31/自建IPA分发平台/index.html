@@ -90,13 +90,6 @@
 
                         
                         <li>
-                            <a href="/archives/">Archives</a>
-                        </li>
-                        
-                    
-
-                        
-                        <li>
                             <a href="/about/">About</a>
                         </li>
                         
@@ -105,6 +98,13 @@
                         
                         <li>
                             <a href="/tags/">Tags</a>
+                        </li>
+                        
+                    
+
+                        
+                        <li>
+                            <a href="/archives/">Archives</a>
                         </li>
                         
                     
@@ -198,7 +198,7 @@
 <h5 id="2-下载链接"><a href="#2-下载链接" class="headerlink" title="2. 下载链接"></a>2. 下载链接</h5><p>接下来，我们需要将上面配置好的plist文件移交给后台开发人员，进行服务器端配置。然后，前端需要将点击下载链接按照如下格式配置：</p>
 <figure class="highlight"><table><tr><td class="code"><pre><div class="line">itms-services://?action=download-manifest&amp;url=https://app.download.xxx.com/install-manifest.plist</div></pre></td></tr></table></figure>
 <p>其中，最主要的是修改”url= ‘’ 为刚才服务器端配置的plist文件下载地址，例如：<code>https://app.download.xxx.com/install-manifest.plist</code></p>
-<p>然后，在h5页面中将下载按钮的响应链接（例如：<a>标签）配置为上面的地址。例如：</a></p>
+<p>然后，在h5页面中将下载按钮的响应链接（例如：<code>&lt;a&gt;</code> 标签）配置为上面的地址。例如：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">"itms-services://?action=download-manifest&amp;url=https://app.download.xxx.com/install-manifest.plist"</span>&gt;</span>立即下载<span class="tag">&lt;/<span class="name">a</span>&gt;</span></div></pre></td></tr></table></figure>
 <h5 id="3-测试"><a href="#3-测试" class="headerlink" title="3. 测试"></a>3. 测试</h5><p>基本的配置就这么多，现在我们可以在实际项目中进行测试了，当点击下载按钮的时候回弹出一个提示框：”是否下载xxx应用?”，这里注意前提是需要先给这个ipa包进行企业签名才能进行公测分发。点击下载后，回到桌面即可看到应用已经在安装了。</p>
 <h3 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h3><p>整个配置流程也很简单，从配置plist文件，到配置下载链接，最重要的还是要和后台配合。有此需求的小伙伴，赶快动手亲自尝试一下吧！</p>
