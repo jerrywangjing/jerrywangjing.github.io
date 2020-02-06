@@ -289,7 +289,7 @@ RactiveCocoa 中使用使用到的编程风格：
 
 ### 参考/引用
 
-[ReactiveCocoa v2.5 源码解析之架构总览](<http://blog.leichunfeng.com/blog/2015/12/25/reactivecocoa-v2-dot-5-yuan-ma-jie-xi-zhi-jia-gou-zong-lan/>)
-
-[iOS ReactiveCocoa 最全常用API整理](<http://www.cocoachina.com/ios/20160729/17236.html>)
+> [ReactiveCocoa v2.5 源码解析之架构总览](<http://blog.leichunfeng.com/blog/2015/12/25/reactivecocoa-v2-dot-5-yuan-ma-jie-xi-zhi-jia-gou-zong-lan/>)
+>
+> [iOS ReactiveCocoa 最全常用API整理](<http://www.cocoachina.com/ios/20160729/17236.html>)
 

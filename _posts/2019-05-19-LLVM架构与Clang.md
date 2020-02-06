@@ -7,7 +7,7 @@ tags:
     - Clang
 ---
 
-![head-logo](/assets/images/2019/llvm-logo-bg.png)
+![head-logo](/assets/images/posts/llvm-logo-bg.png)
 
 ### LLVM简介
 

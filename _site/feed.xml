@@ -5,13 +5,459 @@
     <description>Hello,I'm an iOS developer in China.</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 06 Feb 2020 18:29:23 +0800</pubDate>
-    <lastBuildDate>Thu, 06 Feb 2020 18:29:23 +0800</lastBuildDate>
+    <pubDate>Thu, 06 Feb 2020 20:45:48 +0800</pubDate>
+    <lastBuildDate>Thu, 06 Feb 2020 20:45:48 +0800</lastBuildDate>
     <generator>Jekyll v3.8.5</generator>
     
       <item>
+        <title>自建IPA分发平台</title>
+        <description>&lt;h3 id=&quot;前言&quot;&gt;前言&lt;/h3&gt;
+
+&lt;p&gt;目前iOS App的内侧分发渠道很多，包括：蒲公英、fir.im等等三方分发平台，用户注册账号后，可以直接上传Archive后的ipa文件即可通过生成的应用下载页来下载安装。但是，为了满足个性化以及品牌宣传等需求，我们需要自建H5下载页，并配置好相关数据也可以制定自定义的分发下载渠道。&lt;/p&gt;
+
+&lt;h3 id=&quot;配置步骤&quot;&gt;配置步骤&lt;/h3&gt;
+
+&lt;p&gt;首先我们需要配置一个plist文件，包含2种尺寸的icon图标、app基本信息、和ipa文件的下载地址等，下面我们就以一个例子，介绍下具体的实现步骤：&lt;/p&gt;
+
+&lt;h5 id=&quot;1-plist-文件&quot;&gt;1. Plist 文件&lt;/h5&gt;
+
+&lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# manifest-demo.plist 文件
+....
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;array&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;dict&amp;gt;&lt;/span&gt;
+					&lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;kind&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;
+					&lt;span class=&quot;nt&quot;&gt;&amp;lt;string&amp;gt;&lt;/span&gt;software-package&lt;span class=&quot;nt&quot;&gt;&amp;lt;/string&amp;gt;&lt;/span&gt;
+					&lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;url&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;
+					&lt;span class=&quot;nt&quot;&gt;&amp;lt;string&amp;gt;&lt;/span&gt;https://com.download.ipa&lt;span class=&quot;nt&quot;&gt;&amp;lt;/string&amp;gt;&lt;/span&gt;		&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- 这里填写ipa文件的下载地址 --&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dict&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;dict&amp;gt;&lt;/span&gt;
+					&lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;kind&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;
+					&lt;span class=&quot;nt&quot;&gt;&amp;lt;string&amp;gt;&lt;/span&gt;display-image&lt;span class=&quot;nt&quot;&gt;&amp;lt;/string&amp;gt;&lt;/span&gt;
+					&lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;url&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;
+					&lt;span class=&quot;nt&quot;&gt;&amp;lt;string&amp;gt;&lt;/span&gt;https://com.icon.57x57.png&lt;span class=&quot;nt&quot;&gt;&amp;lt;/string&amp;gt;&lt;/span&gt;	&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- 57x57 像素的icon图片 --&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dict&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;dict&amp;gt;&lt;/span&gt;
+					&lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;kind&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;
+					&lt;span class=&quot;nt&quot;&gt;&amp;lt;string&amp;gt;&lt;/span&gt;full-size-image&lt;span class=&quot;nt&quot;&gt;&amp;lt;/string&amp;gt;&lt;/span&gt;
+					&lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;url&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;
+					&lt;span class=&quot;nt&quot;&gt;&amp;lt;string&amp;gt;&lt;/span&gt;https://com.icon.512x512.png&lt;span class=&quot;nt&quot;&gt;&amp;lt;/string&amp;gt;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- 512x512 像素的icon图片 --&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dict&amp;gt;&lt;/span&gt;
+			&lt;span class=&quot;nt&quot;&gt;&amp;lt;/array&amp;gt;&lt;/span&gt;
+			&lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;metadata&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;
+			&lt;span class=&quot;nt&quot;&gt;&amp;lt;dict&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;bundle-identifier&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;string&amp;gt;&lt;/span&gt;com.app.xxx&lt;span class=&quot;nt&quot;&gt;&amp;lt;/string&amp;gt;&lt;/span&gt;	&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- 包名 --&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;bundle-version&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;string&amp;gt;&lt;/span&gt;1.0.0&lt;span class=&quot;nt&quot;&gt;&amp;lt;/string&amp;gt;&lt;/span&gt;				&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- 版本号 --&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;kind&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;string&amp;gt;&lt;/span&gt;software&lt;span class=&quot;nt&quot;&gt;&amp;lt;/string&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;title&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;string&amp;gt;&lt;/span&gt;appName&lt;span class=&quot;nt&quot;&gt;&amp;lt;/string&amp;gt;&lt;/span&gt;					&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- 应用名称 --&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;subtitle&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;	
+				&lt;span class=&quot;nt&quot;&gt;&amp;lt;string&amp;gt;&lt;/span&gt;subName&lt;span class=&quot;nt&quot;&gt;&amp;lt;/string&amp;gt;&lt;/span&gt;				  &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- 副标题 --&amp;gt;&lt;/span&gt;
+			&lt;span class=&quot;nt&quot;&gt;&amp;lt;/dict&amp;gt;&lt;/span&gt;
+....
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;上面是一个plist配置文件的demo，可以直接在上面修改相关信息，也可以在Archive 打包的时候在Xcode 的提示框中勾选同时生成该plist文件。一般都采取直接修改现成的plist文件即可。demo文件可以点击&lt;a href=&quot;https://github.com/jerrywangjing/manifest.plist-Config/blob/master/manifest-demo.plist&quot;&gt;这里下载&lt;/a&gt;&lt;/p&gt;
+
+&lt;h5 id=&quot;2-下载链接&quot;&gt;2. 下载链接&lt;/h5&gt;
+
+&lt;p&gt;接下来，我们需要将上面配置好的plist文件移交给后台开发人员，进行服务器端配置。然后，前端需要将点击下载链接按照如下格式配置：&lt;/p&gt;
+
+&lt;div class=&quot;language-http highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;err&quot;&gt;itms-services://?action=download-manifest&amp;amp;url=https://app.download.xxx.com/install-manifest.plist
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;其中，最主要的是修改”url= ‘’ 为刚才服务器端配置的plist文件下载地址，例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;https://app.download.xxx.com/install-manifest.plist&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;然后，在h5页面中将下载按钮的响应链接（例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;&amp;lt;a&amp;gt;&lt;/code&gt; 标签）配置为上面的地址。例如：&lt;/p&gt;
+
+&lt;div class=&quot;language-html highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;a&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;itms-services://?action=download-manifest&amp;amp;url=https://app.download.xxx.com/install-manifest.plist&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;立即下载&lt;span class=&quot;nt&quot;&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h5 id=&quot;3-测试&quot;&gt;3. 测试&lt;/h5&gt;
+
+&lt;p&gt;基本的配置就这么多，现在我们可以在实际项目中进行测试了，当点击下载按钮的时候回弹出一个提示框：”是否下载xxx应用?”，这里注意前提是需要先给这个ipa包进行企业签名才能进行公测分发。点击下载后，回到桌面即可看到应用已经在安装了。&lt;/p&gt;
+
+&lt;h3 id=&quot;结语&quot;&gt;结语&lt;/h3&gt;
+
+&lt;p&gt;整个配置流程也很简单，从配置plist文件，到配置下载链接，最重要的还是要和后台配合。有此需求的小伙伴，赶快动手亲自尝试一下吧！&lt;/p&gt;
+</description>
+        <pubDate>Thu, 01 Aug 2019 07:04:14 +0800</pubDate>
+        <link>http://localhost:4000/2019/08/%E8%87%AA%E5%BB%BAIPA%E5%88%86%E5%8F%91%E5%B9%B3%E5%8F%B0/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/08/%E8%87%AA%E5%BB%BAIPA%E5%88%86%E5%8F%91%E5%B9%B3%E5%8F%B0/</guid>
+        
+        <category>iOS</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>ReactiveCocoa 使用指南</title>
+        <description>&lt;h3 id=&quot;简介&quot;&gt;简介&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ReactiveCocoa&lt;/code&gt;是由GitHub开源的一款函数响应式编程框架（FRP），打破了Objective-C一贯的命令式编程的风格，结合函数式编程和响应式编程思想，将iOS开发中的各种不同事件抽象成一个数据流（RACSignal），这也被称做信号，并且内部制定了统一接口，并提供了对数据流进行连接、过滤和组合的API接口。&lt;/p&gt;
+
+&lt;p&gt;RactiveCocoa 中使用使用到的编程风格：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;函数式编程（Functional Programming）：使用高阶函数，例如：函数用其他函数作为参数。&lt;/li&gt;
+  &lt;li&gt;响应式编程（Reactive Programming）：关注于数据流和变化传播&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ReactiveCocoa&lt;/code&gt;编程框架的强大之处在于，能将原本繁琐的target-action、delegate、KVO、callback等iOS开发中常见的开发模式，使用函数式编程范式将一个个操作串联到一起，并实现了view和Model之间的双向绑定，从而对iOS中实现MVVM开发架构提供了简便而强大的支持。&lt;/p&gt;
+
+&lt;h3 id=&quot;框架类图&quot;&gt;框架类图&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;下图引用自博客《ReactiveCocoa v2.5 源码解析之架构总览》— 雷纯峰的博客&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://blog.leichunfeng.com/images/ReactiveCocoa%20v2.5.png&quot; alt=&quot;img1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;从上面的类图中，我们可以看出，ReactiveCocoa 主要由以下四大核心组件构成：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;信号源：&lt;code class=&quot;highlighter-rouge&quot;&gt;RACStream&lt;/code&gt;及其子类；&lt;/li&gt;
+  &lt;li&gt;订阅者：&lt;code class=&quot;highlighter-rouge&quot;&gt;RACSubscriber&lt;/code&gt;的实现类及其子类；&lt;/li&gt;
+  &lt;li&gt;调度器：&lt;code class=&quot;highlighter-rouge&quot;&gt;RACScheduler&lt;/code&gt;及其子类；&lt;/li&gt;
+  &lt;li&gt;清洁工：&lt;code class=&quot;highlighter-rouge&quot;&gt;RACDisposable&lt;/code&gt;及其子类；&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;其中，信号源又是最核心的部分，其他组件都是围绕它运作的。通过信号，将iOS开发中的所有异步事件封装为一个统一的block回调，大大简化了对异步事件的逻辑处理，从而使整个逻辑代码看起来很连贯、自然，一气呵成。&lt;/p&gt;
+
+&lt;p&gt;下面我们通过代码示例来说明，在&lt;code class=&quot;highlighter-rouge&quot;&gt;RAC&lt;/code&gt;中是如何实现的：&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 代理方法&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;rac_signalForSelector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;webViewDidStartLoad&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:)&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;fromProtocol&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@protocol&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;UIWebViewDelegate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;subscribeNext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// 实现 webViewDidStartLoad: 代理方法&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}];&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// target-action&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;avatarButton&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;rac_signalForControlEvents&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UIControlEventTouchUpInside&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;subscribeNext&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UIButton&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;avatarButton&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// avatarButton 被点击了&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}];&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// 通知&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;[[[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSNotificationCenter&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;defaultCenter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;rac_addObserverForName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kReachabilityChangedNotification&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;subscribeNext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSNotification&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;notification&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// 收到 kReachabilityChangedNotification 通知&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}];&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// KVO&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACObserve&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;subscribeNext&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// 用户名发生了变化&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}];&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;然而，&lt;code class=&quot;highlighter-rouge&quot;&gt;ReactiveCocoa&lt;/code&gt;的强大之处不仅仅是这些，重要的是它还可以将这些信号进行任意地组合、链接、转换等操作，例如将登陆页面中的账号和密码数据的信号通过一个规则进行合并，同时产生一个新的信号：&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;[[[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RACSignal&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;combineLatest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:@[&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RACObserve&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RACObserve&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;reduce&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;distinctUntilChanged&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;subscribeNext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSNumber&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;valid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;valid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;boolValue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;c1&quot;&gt;// 用户名和密码合法，登录按钮可用&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;c1&quot;&gt;// 用户名或密码不合法，登录按钮不可用&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}];&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;rac常用api手册&quot;&gt;RAC常用API手册&lt;/h3&gt;
+
+&lt;h3 id=&quot;常见类&quot;&gt;常见类&lt;/h3&gt;
+
+&lt;h4 id=&quot;racsiganl-信号类&quot;&gt;RACSiganl 信号类。&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;RACEmptySignal ：空信号，用来实现 RACSignal 的 +empty 方法；&lt;/li&gt;
+  &lt;li&gt;RACReturnSignal ：一元信号，用来实现 RACSignal 的 +return: 方法；&lt;/li&gt;
+  &lt;li&gt;RACDynamicSignal ：动态信号，使用一个 block - 来实现订阅行为，我们在使用 RACSignal 的 +createSignal: 方法时创建的就是该类的实例；&lt;/li&gt;
+  &lt;li&gt;RACErrorSignal ：错误信号，用来实现 RACSignal 的 +error: 方法；&lt;/li&gt;
+  &lt;li&gt;RACChannelTerminal ：通道终端，代表 RACChannel 的一个终端，用来实现双向绑定。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;racsubscriber-订阅者&quot;&gt;RACSubscriber 订阅者&lt;/h4&gt;
+
+&lt;h4 id=&quot;racdisposable-用于取消订阅或者清理资源当信号发送完成或者发送错误的时候就会自动触发它&quot;&gt;RACDisposable 用于取消订阅或者清理资源，当信号发送完成或者发送错误的时候，就会自动触发它。&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;RACSerialDisposable ：作为 disposable 的容器使用，可以包含一个 disposable 对象，并且允许将这个 disposable 对象通过原子操作交换出来；&lt;/li&gt;
+  &lt;li&gt;RACKVOTrampoline ：代表一次 KVO 观察，并且可以用来停止观察；&lt;/li&gt;
+  &lt;li&gt;RACCompoundDisposable ：它可以包含多个 disposable 对象，并且支持手动添加和移除 disposable 对象&lt;/li&gt;
+  &lt;li&gt;RACScopedDisposable ：当它被 dealloc 的时候调用本身的 -dispose 方法。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;racsubject-信号提供者自己可以充当信号又能发送信号订阅后发送&quot;&gt;RACSubject 信号提供者，自己可以充当信号，又能发送信号。订阅后发送&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;RACGroupedSignal ：分组信号，用来实现 RACSignal 的分组功能；&lt;/li&gt;
+  &lt;li&gt;RACBehaviorSubject ：重演最后值的信号，当被订阅时，会向订阅者发送它最后接收到的值；&lt;/li&gt;
+  &lt;li&gt;RACReplaySubject ：重演信号，保存发送过的值，当被订阅时，会向订阅者重新发送这些值。可以先发送后订阅&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;ractuple-元组类类似nsarray用来包装值&quot;&gt;RACTuple 元组类,类似NSArray,用来包装值.&lt;/h4&gt;
+
+&lt;h4 id=&quot;racsequence-rac中的集合类&quot;&gt;RACSequence RAC中的集合类&lt;/h4&gt;
+
+&lt;h4 id=&quot;raccommand-rac中用于处理事件的类可以把事件如何处理事件中的数据如何传递包装到这个类中他可以很方便的监控事件的执行过程&quot;&gt;RACCommand RAC中用于处理事件的类，可以把事件如何处理,事件中的数据如何传递，包装到这个类中，他可以很方便的监控事件的执行过程。&lt;/h4&gt;
+
+&lt;h4 id=&quot;racmulticastconnection-用于当一个信号被多次订阅时为了保证创建信号时避免多次调用创建信号中的block造成副作用可以使用这个类处理&quot;&gt;RACMulticastConnection 用于当一个信号，被多次订阅时，为了保证创建信号时，避免多次调用创建信号中的block，造成副作用，可以使用这个类处理。&lt;/h4&gt;
+
+&lt;h4 id=&quot;racscheduler-rac中的队列用gcd封装的&quot;&gt;RACScheduler RAC中的队列，用GCD封装的。&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;RACImmediateScheduler ：立即执行调度的任务，这是唯一一个支持同步执行的调度器；&lt;/li&gt;
+  &lt;li&gt;RACQueueScheduler ：一个抽象的队列调度器，在一个 GCD 串行列队中异步调度所有任务；&lt;/li&gt;
+  &lt;li&gt;RACTargetQueueScheduler ：继承自 RACQueueScheduler ，在一个以一个任意的 GCD 队列为 target 的串行队列中异步调度所有任务；&lt;/li&gt;
+  &lt;li&gt;RACSubscriptionScheduler ：一个只用来调度订阅的调度器。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;常见用法&quot;&gt;常见用法&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rac_signalForSelector : 代替代理&lt;/li&gt;
+  &lt;li&gt;rac_valuesAndChangesForKeyPath: KVO&lt;/li&gt;
+  &lt;li&gt;rac_signalForControlEvents:监听事件&lt;/li&gt;
+  &lt;li&gt;rac_addObserverForName 代替通知&lt;/li&gt;
+  &lt;li&gt;rac_textSignal：监听文本框文字改变&lt;/li&gt;
+  &lt;li&gt;rac_liftSelector:withSignalsFromArray:Signals:当传入的Signals(信号数组)，每一个signal都至少sendNext过一次，就会去触发第一个selector参数的方法。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;常见宏&quot;&gt;常见宏&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;RAC(TARGET, [KEYPATH, [NIL_VALUE]])：用于给某个对象的某个属性绑定&lt;/li&gt;
+  &lt;li&gt;RACObserve(self, name) ：监听某个对象的某个属性,返回的是信号。&lt;/li&gt;
+  &lt;li&gt;@weakify(Obj)和@strongify(Obj)&lt;/li&gt;
+  &lt;li&gt;RACTuplePack ：把数据包装成RACTuple（元组类）&lt;/li&gt;
+  &lt;li&gt;RACTupleUnpack：把RACTuple（元组类）解包成对应的数据&lt;/li&gt;
+  &lt;li&gt;RACChannelTo 用于双向绑定的一个终端&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;常用操作方法&quot;&gt;常用操作方法&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;flattenMap map 用于把源信号内容映射成新的内容。&lt;/li&gt;
+  &lt;li&gt;concat 组合 按一定顺序拼接信号，当多个信号发出的时候，有顺序的接收信号&lt;/li&gt;
+  &lt;li&gt;then 用于连接两个信号，当第一个信号完成，才会连接then返回的信号。&lt;/li&gt;
+  &lt;li&gt;merge 把多个信号合并为一个信号，任何一个信号有新值的时候就会调用&lt;/li&gt;
+  &lt;li&gt;zipWith 把两个信号压缩成一个信号，只有当两个信号同时发出信号内容时，并且把两个信号的内容合并成一个元组，才会触发压缩流的next事件。&lt;/li&gt;
+  &lt;li&gt;combineLatest:将多个信号合并起来，并且拿到各个信号的最新的值,必须每个合并的signal至少都有过一次sendNext，才会触发合并的信号。&lt;/li&gt;
+  &lt;li&gt;reduce聚合:用于信号发出的内容是元组，把信号发出元组的值聚合成一个值&lt;/li&gt;
+  &lt;li&gt;filter:过滤信号，使用它可以获取满足条件的信号.&lt;/li&gt;
+  &lt;li&gt;ignore:忽略完某些值的信号.&lt;/li&gt;
+  &lt;li&gt;distinctUntilChanged:当上一次的值和当前的值有明显的变化就会发出信号，否则会被忽略掉。&lt;/li&gt;
+  &lt;li&gt;take:从开始一共取N次的信号&lt;/li&gt;
+  &lt;li&gt;takeLast:取最后N次的信号,前提条件，订阅者必须调用完成，因为只有完成，就知道总共有多少信号.&lt;/li&gt;
+  &lt;li&gt;takeUntil:(RACSignal *):获取信号直到某个信号执行完成&lt;/li&gt;
+  &lt;li&gt;skip:(NSUInteger):跳过几个信号,不接受。&lt;/li&gt;
+  &lt;li&gt;switchToLatest:用于signalOfSignals（信号的信号），有时候信号也会发出信号，会在signalOfSignals中，获取signalOfSignals发送的最新信号。&lt;/li&gt;
+  &lt;li&gt;doNext: 执行Next之前，会先执行这个Block&lt;/li&gt;
+  &lt;li&gt;doCompleted: 执行sendCompleted之前，会先执行这个Block&lt;/li&gt;
+  &lt;li&gt;timeout：超时，可以让一个信号在一定的时间后，自动报错。&lt;/li&gt;
+  &lt;li&gt;interval 定时：每隔一段时间发出信号&lt;/li&gt;
+  &lt;li&gt;delay 延迟发送next。&lt;/li&gt;
+  &lt;li&gt;retry重试 ：只要失败，就会重新执行创建信号中的block,直到成功.&lt;/li&gt;
+  &lt;li&gt;replay重放：当一个信号被多次订阅,反复播放内容&lt;/li&gt;
+  &lt;li&gt;throttle节流:当某个信号发送比较频繁时，可以使用节流，在某一段时间不发送信号内容，过了一段时间获取信号的最新内容发出。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;ui---category常用汇总&quot;&gt;UI - Category（常用汇总）&lt;/h3&gt;
+
+&lt;h4 id=&quot;rac_prepareforreusesignal-需要复用时用&quot;&gt;rac_prepareForReuseSignal： 需要复用时用&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;相关UI: MKAnnotationView、UICollectionReusableView、UITableViewCell、UITableViewHeaderFooterView&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;rac_buttonclickedsignal点击事件触发信号&quot;&gt;rac_buttonClickedSignal：点击事件触发信号&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;相关UI：UIActionSheet、UIAlertView&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;rac_commandbutton类刷新类相关命令替换&quot;&gt;rac_command：button类、刷新类相关命令替换&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;相关UI：UIBarButtonItem、UIButton、UIRefreshControl&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;rac_signalforcontrolevents-control-event-触发&quot;&gt;rac_signalForControlEvents: control event 触发&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;相关UI：UIControl&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;rac_gesturesignal-uigesturerecognizer-事件处理信号&quot;&gt;rac_gestureSignal UIGestureRecognizer 事件处理信号&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;相关UI：UIGestureRecognizer&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;rac_imageselectedsignal-选择图片的信号&quot;&gt;rac_imageSelectedSignal 选择图片的信号&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;相关UI：UIImagePickerController&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;rac_textsignal&quot;&gt;rac_textSignal&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;相关UI：UITextField、UITextView&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;可实现双向绑定的相关api&quot;&gt;可实现双向绑定的相关API&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;rac_channelForControlEvents: key: nilValue:&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;相关UI：UIControl类&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;rac_newDateChannelWithNilValue:&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;相关UI：UIDatePicker&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;rac_newSelectedSegmentIndexChannelWithNilValue:&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;相关UI：UISegmentedControl&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;rac_newValueChannelWithNilValue:&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;相关UI：UISlider、UIStepper&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;rac_newOnChannel&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;相关UI：UISwitch&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;rac_newTextChannel&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;相关UI：UITextField&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;foundation---category-常用汇总&quot;&gt;Foundation - Category （常用汇总）&lt;/h3&gt;
+
+&lt;h4 id=&quot;nsdata&quot;&gt;NSData&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rac_readContentsOfURL: options: scheduler: 比oc多出线程设置&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;nsdictionary&quot;&gt;NSDictionary&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rac_sequence&lt;/li&gt;
+  &lt;li&gt;rac_keySequence key 集合&lt;/li&gt;
+  &lt;li&gt;rac_valueSequence value 集合&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;nsarray&quot;&gt;NSArray&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rac_sequence 信号集合&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;nsfilehandle&quot;&gt;NSFileHandle&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rac_readInBackground 后台线程读取&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;nsinvocation&quot;&gt;NSInvocation&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rac_setArgument: atIndex: 设置参数&lt;/li&gt;
+  &lt;li&gt;rac_argumentAtIndex 取某个参数&lt;/li&gt;
+  &lt;li&gt;rac_returnValue 所关联方法的返回值&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;nsnotificationcenter&quot;&gt;NSNotificationCenter&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rac_addObserverForName: object:注册通知&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;nsobject&quot;&gt;NSObject&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rac_willDeallocSignal 对象销毁时发动的信号&lt;/li&gt;
+  &lt;li&gt;rac_description debug用&lt;/li&gt;
+  &lt;li&gt;rac_observeKeyPath: options: observer: block:监听某个事件&lt;/li&gt;
+  &lt;li&gt;rac_liftSelector: withSignals: 全部信号都next在执行&lt;/li&gt;
+  &lt;li&gt;rac_signalForSelector: 代替某个方法&lt;/li&gt;
+  &lt;li&gt;rac_signalForSelector:(SEL)selector fromProtocol:代替代理&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;nsstring&quot;&gt;NSString&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rac_keyPathComponents 获取一个路径所有的部分&lt;/li&gt;
+  &lt;li&gt;rac_keyPathByDeletingLastKeyPathComponent 删除路径最后一部分&lt;/li&gt;
+  &lt;li&gt;rac_keyPathByDeletingFirstKeyPathComponent 删除路径第一部分&lt;/li&gt;
+  &lt;li&gt;rac_readContentsOfURL: usedEncoding: scheduler: 比之OC多线程调用&lt;/li&gt;
+  &lt;li&gt;rac_sequence&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;nsurlconnection&quot;&gt;NSURLConnection&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rac_sendAsynchronousRequest 发起异步请求&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;nsuserdefaults&quot;&gt;NSUserDefaults&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rac_channelTerminalForKey 用于双向绑定，此乃一&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;nsenumerator&quot;&gt;NSEnumerator&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rac_sequence&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;nsindexset&quot;&gt;NSIndexSet&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rac_sequence&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;nsorderedset&quot;&gt;NSOrderedSet&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rac_sequence&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;nsset&quot;&gt;NSSet&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;rac_sequence&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;总结&quot;&gt;总结&lt;/h3&gt;
+
+&lt;p&gt;本文简单介绍了&lt;code class=&quot;highlighter-rouge&quot;&gt;ReactiveCocoa&lt;/code&gt;函数响应式库，并列举了在实际开发中几个常见的用法，真实感受到了&lt;code class=&quot;highlighter-rouge&quot;&gt;ReactiveCocoa&lt;/code&gt;库的强大和精妙之处。对iOS开发提供了一条新思路，为实现MVVM架构提供了视图与模型的绑定功能，同时也提升了iOS应用的开发效率。&lt;/p&gt;
+
+&lt;p&gt;最后，如果你对响应式编程感兴趣，鉴于强大的&lt;code class=&quot;highlighter-rouge&quot;&gt;ReactiveCocoa&lt;/code&gt;库，赶紧接入到自己的项目中体验吧！&lt;/p&gt;
+
+&lt;h3 id=&quot;参考引用&quot;&gt;参考/引用&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;a href=&quot;http://blog.leichunfeng.com/blog/2015/12/25/reactivecocoa-v2-dot-5-yuan-ma-jie-xi-zhi-jia-gou-zong-lan/&quot;&gt;ReactiveCocoa v2.5 源码解析之架构总览&lt;/a&gt;&lt;/p&gt;
+
+  &lt;p&gt;&lt;a href=&quot;http://www.cocoachina.com/ios/20160729/17236.html&quot;&gt;iOS ReactiveCocoa 最全常用API整理&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+</description>
+        <pubDate>Tue, 18 Jun 2019 06:28:03 +0800</pubDate>
+        <link>http://localhost:4000/2019/06/ReactiveCocoa-%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/06/ReactiveCocoa-%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/</guid>
+        
+        <category>ReactiveCocoa</category>
+        
+        
+      </item>
+    
+      <item>
         <title>LLVM架构与Clang</title>
-        <description>&lt;p&gt;&lt;img src=&quot;/assets/images/2019/llvm-logo-bg.png&quot; alt=&quot;head-logo&quot; /&gt;&lt;/p&gt;
+        <description>&lt;p&gt;&lt;img src=&quot;/assets/images/posts/llvm-logo-bg.png&quot; alt=&quot;head-logo&quot; /&gt;&lt;/p&gt;
 
 &lt;h3 id=&quot;llvm简介&quot;&gt;LLVM简介&lt;/h3&gt;
 
@@ -239,93 +685,1195 @@ eof &lt;span class=&quot;s1&quot;&gt;''&lt;/span&gt;		&lt;span class=&quot;nv&qu
       </item>
     
       <item>
-        <title>Hello World - Vno</title>
-        <description>&lt;h4 id=&quot;whats-this&quot;&gt;What’s this&lt;/h4&gt;
+        <title>iOS代码混淆之编译优化(三)</title>
+        <description>&lt;blockquote&gt;
+  &lt;p&gt;这是iOS代码混淆系列文章的最后一篇，前两篇可以点击下方链接查看&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;https://github.com/onevcat/vno-jekyll&quot;&gt;Vno Jekyll&lt;/a&gt; is a theme for &lt;a href=&quot;http://jekyllrb.com&quot;&gt;Jekyll&lt;/a&gt;. It is a port of my Ghost theme &lt;a href=&quot;https://github.com/onevcat/vno&quot;&gt;vno&lt;/a&gt;, which is originally developed from &lt;a href=&quot;https://github.com/daleanthony/uno&quot;&gt;Dale Anthony’s Uno&lt;/a&gt;.&lt;/p&gt;
+  &lt;p&gt;&lt;a href=&quot;http://127.0.0.1:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E6%96%B9%E6%B3%95%E5%90%8D%E6%9B%BF%E6%8D%A2(%E4%B8%80)/&quot;&gt;iOS代码混淆之方法名替换(一)&lt;/a&gt;&lt;/p&gt;
 
-&lt;h4 id=&quot;usage&quot;&gt;Usage&lt;/h4&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;git clone https://github.com/onevcat/vno-jekyll.git your_site
-&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;your_site
-&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;bundler &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;bundler &lt;span class=&quot;nb&quot;&gt;exec &lt;/span&gt;jekyll serve
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Your site with &lt;code class=&quot;highlighter-rouge&quot;&gt;Vno Jekyll&lt;/code&gt; enabled should be accessible in http://127.0.0.1:4000.&lt;/p&gt;
-
-&lt;p&gt;For more information about Jekyll, please visit &lt;a href=&quot;http://jekyllrb.com&quot;&gt;Jekyll’s site&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h4 id=&quot;configuration&quot;&gt;Configuration&lt;/h4&gt;
-
-&lt;p&gt;All configuration could be done in &lt;code class=&quot;highlighter-rouge&quot;&gt;_config.yml&lt;/code&gt;. Remember you need to restart to serve the page when after changing the config file. Everything in the config file should be self-explanatory.&lt;/p&gt;
-
-&lt;h4 id=&quot;background-image-and-avatar&quot;&gt;Background image and avatar&lt;/h4&gt;
-
-&lt;p&gt;You could replace the background and avatar image in &lt;code class=&quot;highlighter-rouge&quot;&gt;assets/images&lt;/code&gt; folder to change them.&lt;/p&gt;
-
-&lt;h4 id=&quot;sites-using-vno&quot;&gt;Sites using Vno&lt;/h4&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://onevcat.com&quot;&gt;My blog&lt;/a&gt; is using &lt;code class=&quot;highlighter-rouge&quot;&gt;Vno Jekyll&lt;/code&gt; as well, you could see how it works in real. There are some other sites using the same theme. You can find them below:&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;Site Name&lt;/th&gt;
-      &lt;th&gt;URL&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;OneV’s Den&lt;/td&gt;
-      &lt;td&gt;&lt;a href=&quot;http://onevcat.com&quot;&gt;http://onevcat.com&lt;/a&gt;&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;July Tang&lt;/td&gt;
-      &lt;td&gt;&lt;a href=&quot;http://onevcat.com&quot;&gt;http://blog.julytang.xyz&lt;/a&gt;&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Harry Lee&lt;/td&gt;
-      &lt;td&gt;&lt;a href=&quot;http://qiuqi.li&quot;&gt;http://qiuqi.li&lt;/a&gt;&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;If you happen to be using this theme, welcome to &lt;a href=&quot;https://github.com/onevcat/vno-jekyll/pulls&quot;&gt;send me a pull request&lt;/a&gt; to add your site link here. :)&lt;/p&gt;
+  &lt;p&gt;&lt;a href=&quot;http://127.0.0.1:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E8%B5%84%E6%BA%90%E6%9B%BF%E6%8D%A2(%E4%BA%8C)/&quot;&gt;iOS代码混淆之资源替换(二)&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;h4 id=&quot;license&quot;&gt;License&lt;/h4&gt;
+&lt;h3 id=&quot;前言&quot;&gt;前言&lt;/h3&gt;
 
-&lt;p&gt;Great thanks to &lt;a href=&quot;https://github.com/daleanthony&quot;&gt;Dale Anthony&lt;/a&gt; and his &lt;a href=&quot;https://github.com/daleanthony/uno&quot;&gt;Uno&lt;/a&gt;. Vno Jekyll is based on Uno, and contains a lot of modification on page layout, animation, font and some more things I can not remember. Vno Jekyll is followed with Uno and be licensed as &lt;a href=&quot;http://creativecommons.org/licenses/by/4.0/&quot;&gt;Creative Commons Attribution 4.0 International&lt;/a&gt;. See the link for more information.&lt;/p&gt;
+&lt;p&gt;前2篇文章已近讲了对于函数名的混淆，对项目中关键信息、资源文件的修改等相关混淆手段。但是，仅仅做到这几点就能万事大吉吗，黑客仍然可以通过分析代码逻辑或伪装代码来寻找程序漏洞，那么还有其他更坚固可靠的混淆方式呢，接下来就介绍下编译器级别的加固混淆方案。&lt;/p&gt;
+
+&lt;h3 id=&quot;ios编译原理&quot;&gt;iOS编译原理&lt;/h3&gt;
+
+&lt;p&gt;iOS 开发中 Objective-C 和 Swift 都用的是 Clang / LLVM 来编译的。Clang是作为编译前端，LLVM做为编译后端，共同完成了iOS项目代码的编译阶段。&lt;/p&gt;
+
+&lt;h4 id=&quot;clang编译前端&quot;&gt;Clang(编译前端)&lt;/h4&gt;
+
+&lt;p&gt;Clang 是 LLVM 的子项目，是 C，C++ 和 Objective-C 编译器，目的是提供惊人的快速编译，比 GCC 快3倍，其中的 clang static analyzer 主要是进行语法分析，语义分析和生成中间代码，当然这个过程会对代码进行检查，出错的和需要警告的会标注出来。&lt;/p&gt;
+
+&lt;h4 id=&quot;llvm编译后端&quot;&gt;LLVM(编译后端)&lt;/h4&gt;
+
+&lt;p&gt;LLVM是一个模块化和可重用的编译器和工具链技术的集合，LLVM 核心库提供一个优化器，对流行的 CPU 做代码生成支持。LLVM 比较有特色的一点是它能提供一种代码编写良好的中间代码IR，这意味着它可以作为多种语言的后端，这样就能够提供语言无关的优化同时还能够方便的针对多种 CPU架构生成可执行代码。&lt;/p&gt;
+
+&lt;h3 id=&quot;hikari&quot;&gt;Hikari&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/HikariObfuscator/Hikari&quot;&gt;Hikari&lt;/a&gt; 是一个基于 &lt;a href=&quot;https://github.com/obfuscator-llvm/obfuscator&quot;&gt;Obfuscator-LLVM&lt;/a&gt; 的改进，增加了一些额外的自定义构建通道，更简单易用，结合&lt;a href=&quot;https://github.com/HikariObfuscator/Hikari/wiki&quot;&gt;使用文档&lt;/a&gt;，可以快速体验编译级别的代码加固效果。&lt;/p&gt;
+
+&lt;p&gt;OLLVM 是瑞士西北应用科技大学安全实验室于2010年6月份发起的一个项目，该项目旨在提供一套开源的针对 LLVM 的代码混淆工具，以增加对逆向工程的难度。目前，OLLVM已经支持LLVM8.0版本。&lt;/p&gt;
+
+&lt;h4 id=&quot;安装&quot;&gt;安装&lt;/h4&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;在这里&lt;a href=&quot;https://github.com/HikariObfuscator/Hikari/releases&quot;&gt;下载&lt;/a&gt;最新release版的pkg文件双击安装&lt;/li&gt;
+  &lt;li&gt;安装完成后，重启Xcode就可以在Xcode-&amp;gt; Toolchains -&amp;gt; Hikari 中看到已经有了编译器选项。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&quot;使用&quot;&gt;使用&lt;/h4&gt;
+
+&lt;p&gt;然后在 &lt;code class=&quot;highlighter-rouge&quot;&gt;Build Settings&lt;/code&gt; -&amp;gt; &lt;code class=&quot;highlighter-rouge&quot;&gt;Other C Flags&lt;/code&gt; 中加入混淆标记&lt;/p&gt;
+
+&lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nt&quot;&gt;-mllvm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-enable-bcfobf&lt;/span&gt; 		启用伪控制流  
+&lt;span class=&quot;nt&quot;&gt;-mllvm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-enable-cffobf&lt;/span&gt; 		启用控制流平坦化
+&lt;span class=&quot;nt&quot;&gt;-mllvm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-enable-splitobf&lt;/span&gt; 	启用基本块分割  
+&lt;span class=&quot;nt&quot;&gt;-mllvm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-enable-subobf&lt;/span&gt; 		启用指令替换  
+&lt;span class=&quot;nt&quot;&gt;-mllvm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-enable-acdobf&lt;/span&gt; 		启用反class-dump  
+&lt;span class=&quot;nt&quot;&gt;-mllvm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-enable-indibran&lt;/span&gt; 	启用基于寄存器的相对跳转，配合其他加固可以彻底破坏IDA/Hopper的伪代码&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;俗称F5&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;  
+&lt;span class=&quot;nt&quot;&gt;-mllvm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-enable-strcry&lt;/span&gt; 		启用字符串加密  
+&lt;span class=&quot;nt&quot;&gt;-mllvm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-enable-funcwra&lt;/span&gt; 		启用函数封装
+&lt;span class=&quot;nt&quot;&gt;-mllvm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-enable-allobf&lt;/span&gt;        依次性启用上述所有标记
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;修改Xcode 相关配置，得到混淆效果。&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;选择&lt;code class=&quot;highlighter-rouge&quot;&gt;Xcode&lt;/code&gt; -&amp;gt; &lt;code class=&quot;highlighter-rouge&quot;&gt;Toolchains&lt;/code&gt; -&amp;gt; &lt;code class=&quot;highlighter-rouge&quot;&gt;Hikari&lt;/code&gt; 将混淆工具和项目关联&lt;/li&gt;
+  &lt;li&gt;将所有与要运行的 target 相关的 target（包括pod进来的库），在BuildSetting中修改&lt;code class=&quot;highlighter-rouge&quot;&gt;Enable Index-While-Building&lt;/code&gt; 的值改为 &lt;em&gt;NO&lt;/em&gt;。&lt;/li&gt;
+  &lt;li&gt;修该BuildSetting 中的&lt;code class=&quot;highlighter-rouge&quot;&gt;Optimization Level&lt;/code&gt; 的值为 &lt;code class=&quot;highlighter-rouge&quot;&gt;None[-O0]&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;重新编译项目即可。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&quot;可能遇到的问题&quot;&gt;可能遇到的问题&lt;/h4&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;编译过程中报错，内容如下：&lt;/p&gt;
+
+    &lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Undefined symbols &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;architecture arm64:
+  &lt;span class=&quot;s2&quot;&gt;&quot;___isOSVersionAtLeast&quot;&lt;/span&gt;, referenced from:
+      -[MyLayoutPos posNumVal] &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;MyLayoutPos.o
+      -[MyLayoutViewSizeClass myLayoutTopPadding] &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;MyLayoutSizeClass.o
+      -[MyLayoutViewSizeClass myLayoutBottomPadding] &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;MyLayoutSizeClass.o
+      -[MyLayoutViewSizeClass myLayoutLeadingPadding] &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;MyLayoutSizeClass.o
+      -[MyLayoutViewSizeClass myLayoutTrailingPadding] &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;MyLayoutSizeClass.o
+      _HikariFunctionWrapper.7182 &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;MyLayoutSizeClass.o
+      _HikariFunctionWrapper.7188 &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;MyLayoutSizeClass.o
+      ...
+ld: symbol&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;s&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; not found &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;architecture arm64
+clang-7: error: linker &lt;span class=&quot;nb&quot;&gt;command &lt;/span&gt;failed with &lt;span class=&quot;nb&quot;&gt;exit &lt;/span&gt;code 1 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;use &lt;span class=&quot;nt&quot;&gt;-v&lt;/span&gt; to see invocation&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;&quot;___isOSVersionAtLeast&quot;&lt;/code&gt;符号在arm64架构下找不到，根据以往的经验，出现这种错误的时候一般都是没有导入相关动态库(.Framework)，或静态库(.a)等造成的。庆幸的是已经有人在GitHub上提交了issues并给出了解决方案：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;作者的回答：
+You probably need to explicitly link to clang-rt, available in your LLVM Toolchain directory
+Sorry I mean clang-rt, at Hikari.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.ios.a (or macOS suffix)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;意思是说：可能是缺少某个编译器库造成的，需要手动将这个库添加到Xcode的&lt;code class=&quot;highlighter-rouge&quot;&gt;Linked Frameworks andLibraries&lt;/code&gt;动态链接库目录中。并说明了此库所在的目录&lt;code class=&quot;highlighter-rouge&quot;&gt;Hikari.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.ios.a&lt;/code&gt;，意思是在Hikari编译器的子目录中找到文件&lt;code class=&quot;highlighter-rouge&quot;&gt;libclang_rt.ios.a&lt;/code&gt;，并将他引入到Xcode项目中即可。查找路径顺序如下：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/03/22/5c94b36ece575.png&quot; alt=&quot;img1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/03/22/5c94b36eef8dd.png&quot; alt=&quot;img2&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/03/22/5c94b36ef1e81.png&quot; alt=&quot;img3&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/03/22/5c94b36f2e45d.png&quot; alt=&quot;img4&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;打开&lt;code class=&quot;highlighter-rouge&quot;&gt;Show in Finder&lt;/code&gt; 定位到Hikari的安装目录，然后按照此路径&lt;code class=&quot;highlighter-rouge&quot;&gt;usr/lib/clang/10.0.0/lib/darwin/libclang_rt.ios.a&lt;/code&gt;找到&lt;code class=&quot;highlighter-rouge&quot;&gt;libclang_rt.ios.a&lt;/code&gt;文件，添加到Xcode的链接库中即可。&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;使用Hikari编译后，Archive 打包后，需要上传App Store 时可能会出现 “App Store” 按钮消失的问题，Archives页面右下角会出现一个提示字符：&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;“App Store distribution requires an Xcode Default Toolchain”&lt;/p&gt;
+
+  &lt;p&gt;意思是：App Store 发布版需要使用Xcode 默认的Toolchain (编译工具)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/03/24/5c975cb25b5b4.png&quot; alt=&quot;img5&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/03/24/5c975cb252a92.png&quot; alt=&quot;img6&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;出现这个问题是因为，我们使用了Hikari编译器 Archive的包，所以需要想办法去除这个警告即可。在Hikari的wiki文档中，我们发现作者在AppStore Guideline 安装指南中已经说明了解决方案：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Alternatively, you could use Hikari’s toolchain to build normally then remove &lt;code class=&quot;highlighter-rouge&quot;&gt;DefaultToolchainOverrideInfo&lt;/code&gt; from the IPA’s Info.plist&lt;/p&gt;
+
+  &lt;p&gt;只需要在Arichive 包中的Info.plist 中找到这个值”DefaultToolchainOverrideInfo” 删除即可。可以看出此字段正是标记是否使用默认Toolchain的关键。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;操作步骤为下面图示顺序，注意：记得删除字段后，&lt;strong&gt;一定要重启Xcode才能生效的。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/03/24/5c975d1c91241.png&quot; alt=&quot;img9&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/03/24/5c975d1c6a6fd.png&quot; alt=&quot;img7&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/03/24/5c975d1c7d69e.png&quot; alt=&quot;img8&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/03/24/5c975d1caed98.png&quot; alt=&quot;img10&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;删除上面红色框所示的字段即可，完了后要重启Xcode才会生效。&lt;/p&gt;
+
+&lt;h3 id=&quot;总结&quot;&gt;总结&lt;/h3&gt;
+
+&lt;p&gt;这是iOS代码混淆系列文章的最后一篇，着重讲解了iOS编译原理相关知识，编译前端Clang和编译后端LLVM在整个编译期间各自所做的工作。后面重点讲述了如何使用开源工具Hikari 进行编译混淆、加固，在实践过程中，对遇到的坑也讲了解决方案。&lt;/p&gt;
+
+&lt;p&gt;希望看了这几篇文章的小伙伴，能对iOS代码混淆有个初步的学习和了解，最好能结合自身条件加以实践，想必会理解的更深刻。&lt;/p&gt;
 </description>
-        <pubDate>Tue, 16 Feb 2016 14:32:24 +0800</pubDate>
-        <link>http://localhost:4000/2016/02/hello-world-vno/</link>
-        <guid isPermaLink="true">http://localhost:4000/2016/02/hello-world-vno/</guid>
+        <pubDate>Sun, 10 Mar 2019 19:33:09 +0800</pubDate>
+        <link>http://localhost:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96(%E4%B8%89)/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96(%E4%B8%89)/</guid>
+        
+        <category>iOS</category>
+        
+        <category>代码混淆</category>
         
         
       </item>
     
       <item>
-        <title>Sample Post</title>
-        <description>&lt;p&gt;You’ll find this post in your &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run &lt;code class=&quot;highlighter-rouge&quot;&gt;jekyll serve&lt;/code&gt;, which launches a web server and auto-regenerates your site when a file is updated.&lt;/p&gt;
+        <title>iOS代码混淆之资源替换(二)</title>
+        <description>&lt;blockquote&gt;
+  &lt;p&gt;这是iOS代码混淆系列文章的第二篇，其他两篇可以点击下方链接查看&lt;/p&gt;
 
-&lt;p&gt;To add new posts, simply add a file in the &lt;code class=&quot;highlighter-rouge&quot;&gt;_posts&lt;/code&gt; directory that follows the convention &lt;code class=&quot;highlighter-rouge&quot;&gt;YYYY-MM-DD-name-of-post.ext&lt;/code&gt; and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.&lt;/p&gt;
+  &lt;p&gt;&lt;a href=&quot;http://127.0.0.1:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E6%96%B9%E6%B3%95%E5%90%8D%E6%9B%BF%E6%8D%A2(%E4%B8%80)/&quot;&gt;iOS代码混淆之方法名替换(一)&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;Jekyll also offers powerful support for code snippets:&lt;/p&gt;
+  &lt;p&gt;&lt;a href=&quot;http://127.0.0.1:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96(%E4%B8%89)/&quot;&gt;iOS代码混淆之编译优化(三)&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
 
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Hi, &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;print_hi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'Tom'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;#=&amp;gt; prints 'Hi, Tom' to STDOUT.&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+&lt;h3 id=&quot;为什么要替换项目资源&quot;&gt;为什么要替换项目资源&lt;/h3&gt;
 
-&lt;p&gt;Check out the &lt;a href=&quot;http://jekyllrb.com/docs/home&quot;&gt;Jekyll docs&lt;/a&gt; for more info on how to get the most out of Jekyll. File all bugs/feature requests at &lt;a href=&quot;https://github.com/jekyll/jekyll&quot;&gt;Jekyll’s GitHub repo&lt;/a&gt;. If you have questions, you can ask them on &lt;a href=&quot;https://talk.jekyllrb.com/&quot;&gt;Jekyll Talk&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;在某些公司项目开发当中 ，有时候需要通过技术手段，多次上架同一款产品。这些功能类似，且界面不同的产品也称作马甲包。为了达到将同一个包，经过较少的改动，快速更改为另一个类似的产品时，在代码混淆的基础之上还需要修改项目名称、静态资源等来达到目的。&lt;/p&gt;
+
+&lt;h3 id=&quot;需替换的资源及注意事项&quot;&gt;需替换的资源及注意事项&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;工程内部：工程名称、类名前缀、BundleId、icon、启动图、静态资源等&lt;/li&gt;
+  &lt;li&gt;产品界面：整体UI布局配色、产品功能逻辑、Tabbar顺序等&lt;/li&gt;
+  &lt;li&gt;打包机器：更换打包电脑、使用WIFI网络、使用Application Uploader 上传不同二进制包&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;工具介绍及实践&quot;&gt;工具介绍及实践&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/klaus01/KLGenerateSpamCode&quot;&gt;KLGenerateSpamCode&lt;/a&gt;是在GitHub上开源的一个可快速修改项目名称、文件前缀、生成垃圾代码等功能的集成工具，可方便的实现上述部分资源替换的功能。具体功能如下：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;修改工程名&lt;/li&gt;
+  &lt;li&gt;修改类名前缀&lt;/li&gt;
+  &lt;li&gt;扫描工程中的代码，生成同等数量的 Category 文件，文件中及是同等方法数量的垃圾代码。&lt;/li&gt;
+  &lt;li&gt;修改 xxx.xcassets 文件夹中的 png 资源文件名。&lt;/li&gt;
+  &lt;li&gt;删除代码中的所有注释和空行。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;由于在使用此工具之前，需要先配置修改参数，通过这些参数程序可以自动的修改项目中所需的内容，下面是从使用的角度对各项参数的解释：&lt;/p&gt;
+
+&lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# 1. 项目名地址，注意：不是项目文件夹地址，是项目名那个目录&lt;/span&gt;
+/Users/jerry/Desktop/testProject0/century
+&lt;span class=&quot;c&quot;&gt;# 2. 修改项目名称，注意：放到最后修改,因为其他的修改需要依赖这个目录来查找&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;-modifyProjectName&lt;/span&gt; century&amp;gt;actualbyte
+&lt;span class=&quot;c&quot;&gt;# 3. 忽略文件夹，对添加的文件夹内的文件不执行修改。注意：多个文件夹之间用逗号隔开&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;-ignoreDirNames&lt;/span&gt; ThirdPartLib,Tools,Category,Utils,MacrosDefine,Main,Resource,Support Files
+&lt;span class=&quot;c&quot;&gt;# 4. 修改类名前缀。没有前缀的会加上前缀，有前缀的会修改。注意：修改后是否重名&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;-modifyClassNamePrefix&lt;/span&gt; /Users/jerry/Desktop/testProject0/century.xcodeproj CG&amp;gt;WB
+&lt;span class=&quot;c&quot;&gt;# 5. 生成垃圾代码，注意：生成后的垃圾代码，需要拖入到工程目录中，如有报错可以自己修改或删除&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;-spamCodeOut&lt;/span&gt; /Users/jerry/Desktop/testProject0/SpamCode WBLog
+&lt;span class=&quot;c&quot;&gt;# 6. 修改 xxx.xcassets 文件夹中的 png 资源文件名，必须指定(#1)的地址为xcassets所在的目录，才能生效。注意：此修改不会影响代码中图片的引用名称，只是对资源实体名和json配置文件中的修改。&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;-handleXcassets&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# 7. 删除空行和注释 ，在项目根目录下运行，无效果可以单独运行一次。&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;-deleteComments&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;上述的参数需要在下载的KLGenerateSpamCode工具目录中配置，如下图：&lt;/p&gt;
+
+&lt;p&gt;​&lt;img src=&quot;https://github.com/klaus01/KLGenerateSpamCode/raw/master/images/p2.png&quot; alt=&quot;img1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;参数配置好之后，Run 运行项目即可实现修改。另外，如果包含pod，需要到原项目文件夹下中执行&lt;code class=&quot;highlighter-rouge&quot;&gt;pod update&lt;/code&gt;更新。&lt;/p&gt;
+
+&lt;h3 id=&quot;静态资源的修改&quot;&gt;静态资源的修改&lt;/h3&gt;
+
+&lt;p&gt;静态资源包括项目的icon、启动图、和.xcassets 文件中的图标资源。其中为了更改UI页面元素，icon和启动图需要重新做，并替换进去，而xcassets 资源图片，可以通过修改其hash值达到修改资源的目的，具体可以使用MAC 下的一个终端工具实现。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.imagemagick.org/script/index.php&quot;&gt;ImageMagick&lt;/a&gt;：是一款创建、编辑、合成，转换图像的命令行工具，可对 png 图片做轻量压缩，既不损失图片质量，又可改变图片文件 hash 值，正是我们想要的工具。&lt;/p&gt;
+
+&lt;p&gt;如果电脑中没有安装的话，需要使用&lt;code class=&quot;highlighter-rouge&quot;&gt;Homebrew&lt;/code&gt;来安装执行命令如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-powershell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;brew &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;imagemagick
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;安装完成后，就可以执行ImageMagick的命令，来压缩工程目录下所有 png 文件：&lt;/p&gt;
+
+&lt;div class=&quot;language-powershell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;find &lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt; -iname &lt;span class=&quot;s2&quot;&gt;&quot;*.png&quot;&lt;/span&gt; -exec &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{}&lt;/span&gt; \; -exec convert &lt;span class=&quot;o&quot;&gt;{}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{}&lt;/span&gt; \;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;总结&quot;&gt;总结&lt;/h3&gt;
+
+&lt;p&gt;本篇介绍了，如何通过修改工程名称、类前缀、资源hash值等方式，达到修改二进制包的目的，为上架苹果App Store 做准备。有兴趣的小伙伴可以亲自尝试一下，想必可以给您带来一些帮助。&lt;/p&gt;
+</description>
+        <pubDate>Tue, 05 Mar 2019 19:26:33 +0800</pubDate>
+        <link>http://localhost:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E8%B5%84%E6%BA%90%E6%9B%BF%E6%8D%A2(%E4%BA%8C)/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E8%B5%84%E6%BA%90%E6%9B%BF%E6%8D%A2(%E4%BA%8C)/</guid>
+        
+        <category>iOS</category>
+        
+        <category>代码混淆</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>iOS代码混淆之方法名替换(一)</title>
+        <description>&lt;blockquote&gt;
+  &lt;p&gt;这是iOS代码混淆系列文章的第一篇，后两篇可以点击下方链接查看&lt;/p&gt;
+
+  &lt;p&gt;&lt;a href=&quot;https://wjerry.com/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E8%B5%84%E6%BA%90%E6%9B%BF%E6%8D%A2(%E4%BA%8C)/&quot;&gt;iOS代码混淆之资源替换(二)&lt;/a&gt;&lt;/p&gt;
+
+  &lt;p&gt;&lt;a href=&quot;https://wjerry.com/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96(%E4%B8%89)/&quot;&gt;iOS代码混淆之编译优化(三)&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;前言&quot;&gt;前言&lt;/h2&gt;
+
+&lt;p&gt;在iOS开发中，某些项目为了保护代码安全，不被黑客攻破，通常需要在上架之前对源代码进行加密混淆，下面就介绍一种简单可行的Objective-C代码混淆方案。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;混淆思路&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;由于现在的逆向技术越来越高超，各种破解方案层出不穷，其中就可以使用&lt;code class=&quot;highlighter-rouge&quot;&gt;class-dump&lt;/code&gt;命令行工具轻易的dump出&lt;code class=&quot;highlighter-rouge&quot;&gt;demo.app&lt;/code&gt;文件中的所有头文件，代码立马回暴露在黑客面前，对项目产生了很多不利因素。因此将代码关键方法进行混淆保护迫在眉睫。&lt;/p&gt;
+
+&lt;p&gt;现有的一种混淆方案就是通过对指定class name 方法名进行MD5加密（显示乱码），然后通过脚本代码将加密的方法名生成到指定的头文件中，然后再使用宏替换的方式将混淆过的方法名在代码预编译阶段进行替换，使方法名即便在&lt;code class=&quot;highlighter-rouge&quot;&gt;class-dump&lt;/code&gt;后也只会显示加密后的乱码显示，造成代码不易读，从而实现一定程度上的混淆保护。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;混淆方式&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;通过宏定义（#define）的方法名映射，进行字符串替换。这样做的好处在于可以将映射类别规整到一个头文件中，并&lt;code class=&quot;highlighter-rouge&quot;&gt;#import&lt;/code&gt; 进项目的&lt;code class=&quot;highlighter-rouge&quot;&gt;prefixHeader.h&lt;/code&gt; 预编译头文件中，方便在项目编译时进行全局替换。当不需要混淆的时候，则不导入该头文件即可。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;混淆脚本&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;下面的shell脚本引自的是“念茜-安全攻防”系列文章，实现思路是将敏感的方法名集中写入func.plist文件中，并逐一&lt;code class=&quot;highlighter-rouge&quot;&gt;#define&lt;/code&gt;成随机字符串，最后写入一个.h头文件中。脚本代码如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;#!/usr/bin/env bash&lt;/span&gt;
+
+&lt;span class=&quot;nv&quot;&gt;TABLENAME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;symbols
+&lt;span class=&quot;nv&quot;&gt;SYMBOL_DB_FILE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;symbols&quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;STRING_SYMBOL_FILE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;func.list&quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;HEAD_FILE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$PROJECT_DIR&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$PROJECT_NAME&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/codeObfuscation.h&quot;&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LC_CTYPE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;C
+
+&lt;span class=&quot;c&quot;&gt;#维护数据库方便日后作排重&lt;/span&gt;
+createTable&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;create table &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$TABLENAME&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;(src text, des text);&quot;&lt;/span&gt; | sqlite3 &lt;span class=&quot;nv&quot;&gt;$SYMBOL_DB_FILE&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+insertValue&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;insert into &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$TABLENAME&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; values('&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$1&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;' ,'&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$2&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;');&quot;&lt;/span&gt; | sqlite3 &lt;span class=&quot;nv&quot;&gt;$SYMBOL_DB_FILE&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+query&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;select * from &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$TABLENAME&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; where src='&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$1&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;';&quot;&lt;/span&gt; | sqlite3 &lt;span class=&quot;nv&quot;&gt;$SYMBOL_DB_FILE&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+ramdomString&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    openssl rand &lt;span class=&quot;nt&quot;&gt;-base64&lt;/span&gt; 64 | &lt;span class=&quot;nb&quot;&gt;tr&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-cd&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'a-zA-Z'&lt;/span&gt; |head &lt;span class=&quot;nt&quot;&gt;-c&lt;/span&gt; 16
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;rm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$SYMBOL_DB_FILE&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;rm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$HEAD_FILE&lt;/span&gt;
+createTable
+
+&lt;span class=&quot;nb&quot;&gt;touch&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$HEAD_FILE&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'#ifndef Demo_codeObfuscation_h
+#define Demo_codeObfuscation_h'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$HEAD_FILE&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;//confuse string at &lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$HEAD_FILE&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;cat&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$STRING_SYMBOL_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; | &lt;span class=&quot;k&quot;&gt;while &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;read&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-ra&lt;/span&gt; line&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do
+    if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-z&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$line&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then
+        &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;ramdom&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;ramdomString&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$line&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$ramdom&lt;/span&gt;
+        insertValue &lt;span class=&quot;nv&quot;&gt;$line&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$ramdom&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;#define &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$line&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$ramdom&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$HEAD_FILE&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;fi
+done
+&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;#endif&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$HEAD_FILE&lt;/span&gt;
+
+sqlite3 &lt;span class=&quot;nv&quot;&gt;$SYMBOL_DB_FILE&lt;/span&gt; .dump
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;配置步骤&quot;&gt;配置步骤&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;创建混淆脚本文件&lt;code class=&quot;highlighter-rouge&quot;&gt;confuse.sh&lt;/code&gt;，拷贝上述脚本代码到文件中保存，然后把该脚本文件放到项目根目录。例如：&lt;code class=&quot;highlighter-rouge&quot;&gt;yourProject_path/&lt;/code&gt;目录下。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;创建配置方法名称的列表文件，名为：&lt;code class=&quot;highlighter-rouge&quot;&gt;func.list&lt;/code&gt;，此文件用于将需要混淆的方法名称写入进去，当项目编译时Build，会执行脚本遍历此文件中的方法名执行混淆操作，填写示例：&lt;/p&gt;
+
+    &lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sample&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;   &lt;span class=&quot;c1&quot;&gt;// 无参数方法&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;seg1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;string&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;seg2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSUInteger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;num&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;// 有参数方法&lt;/span&gt;
+   
+&lt;span class=&quot;c1&quot;&gt;// func.list 文件中这样写即可&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;sample&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;seg1&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;seg2&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+
+    &lt;p&gt;然后将创建好的&lt;code class=&quot;highlighter-rouge&quot;&gt;func.list&lt;/code&gt;文件同样拷贝到项目根目录，也可以将&lt;code class=&quot;highlighter-rouge&quot;&gt;confuse.sh&lt;/code&gt; 和&lt;code class=&quot;highlighter-rouge&quot;&gt;func.list&lt;/code&gt;文件都添加进项目目录中，方便日后查看与维护，Xcode 左上角点击&lt;code class=&quot;highlighter-rouge&quot;&gt;File --&amp;gt; Add Files to &quot;xxx&quot;&lt;/code&gt;添加即可。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;配置&lt;code class=&quot;highlighter-rouge&quot;&gt;Build Phases&lt;/code&gt;脚本&lt;/p&gt;
+
+    &lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 脚本代码
+&lt;span class=&quot;nv&quot;&gt;$PROJECT_DIR&lt;/span&gt;/confuse.sh
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+
+    &lt;p&gt;操作步骤如下图：&lt;/p&gt;
+
+    &lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/02/19/5c6bcd8ccbd30.png&quot; alt=&quot;img1&quot; /&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;在&lt;code class=&quot;highlighter-rouge&quot;&gt;PrefixHeader.h&lt;/code&gt;头文件中添加如下代码，意思是只有在Release模式下，才导入混淆头文件&lt;/p&gt;
+
+    &lt;div class=&quot;language-swift highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 混淆定义宏头文件，当在debug模式下，会执行脚本生成替换字符串，在release模式下导入宏文件执行替换&lt;/span&gt;
+   
+&lt;span class=&quot;cp&quot;&gt;#if (DEBUG != 1)&lt;/span&gt;
+&lt;span class=&quot;cp&quot;&gt;#import &quot;codeObfuscation.h&quot;&lt;/span&gt;
+&lt;span class=&quot;cp&quot;&gt;#endif&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;执行编译，可观察编译日志，查看custom shell 是否正确执行，如下图：&lt;/p&gt;
+
+    &lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/02/19/5c6bcfe0d585e.png&quot; alt=&quot;img2&quot; /&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;如果编译成功，会在项目根目录生成一个头文件&lt;code class=&quot;highlighter-rouge&quot;&gt;codeObfuscation.h&lt;/code&gt;，此文件中正是包含了宏替换的关键内容，将此文件添加到项目中，会在release模式下进行替换。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;可能会遇到的问题&quot;&gt;可能会遇到的问题&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;第一次编译成功之前，即脚本代码执行之前是不会有&lt;code class=&quot;highlighter-rouge&quot;&gt;codeObfuscation.h&lt;/code&gt;文件的，所以可能在&lt;code class=&quot;highlighter-rouge&quot;&gt;PrefixHeader.h&lt;/code&gt; 文件中报错：Error_找不到该文件。&lt;strong&gt;解决方法：暂时注释掉即可&lt;/strong&gt;。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;在执行脚本时，编译日志处出现如下报错：&lt;/p&gt;
+
+    &lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/02/19/5c6bcfe0d7e90.png&quot; alt=&quot;img3&quot; /&gt;&lt;/p&gt;
+
+    &lt;p&gt;上图表示在执行脚本代码时，未能找到&lt;code class=&quot;highlighter-rouge&quot;&gt;func.list&lt;/code&gt; 文件或其他文件，这时需要查看脚本代码中该文件的配置路径是否正确。&lt;strong&gt;解决方法：在confuse.sh文件中排查各项配置路径，并改正&lt;/strong&gt;。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;在执行脚本时，如遇到如下报错：&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;confuse.sh: Permission denied
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+
+    &lt;p&gt;说明&lt;code class=&quot;highlighter-rouge&quot;&gt;confuse.sh&lt;/code&gt;脚本文件没有可执行权限，需要在终端iTerm2 中给&lt;code class=&quot;highlighter-rouge&quot;&gt;confuse.sh&lt;/code&gt;文件添加执行权限，如下操作即可：&lt;/p&gt;
+
+    &lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;chmod &lt;/span&gt;a+x confuse.sh
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;使用class-dump-来测试&quot;&gt;使用class-dump 来测试&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;class-dump&lt;/code&gt;是一个命令行工具，它利用Objective-C语言的runtime的特性，将存储在mach-O文件中的@interface和@protocol信息提取出来，并生成对应的.h文件。 它将xx.app格式的iOS项目文件进行分析，并通过命令生成该app源代码中的所有头文件列表，其中就包含了方法名称，可以清晰的查看dump出来的方法名是否已经被混淆。&lt;/p&gt;
+
+&lt;h4 id=&quot;安装-class-dump&quot;&gt;安装 class-dump&lt;/h4&gt;
+
+&lt;p&gt;首先需要去这里：&lt;a href=&quot;http://stevenygard.com/projects/class-dump/&quot;&gt;http://stevenygard.com/projects/class-dump/&lt;/a&gt;，下载&lt;code class=&quot;highlighter-rouge&quot;&gt;class-dump-3.5.dmg&lt;/code&gt;压缩包，解压后将文件夹中的&lt;code class=&quot;highlighter-rouge&quot;&gt;class-dump&lt;/code&gt;可执行文件拷贝到&lt;code class=&quot;highlighter-rouge&quot;&gt;/usr/local/bin&lt;/code&gt;目录下。&lt;/p&gt;
+
+&lt;p&gt;具体操作步骤：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;解压class-dump文件，如下图所示：&lt;/p&gt;
+
+    &lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/02/19/5c6bcfe010d2d.png&quot; alt=&quot;img4&quot; /&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;打开终端，输入如下命令，即可打开&lt;code class=&quot;highlighter-rouge&quot;&gt;/usr/local/bin&lt;/code&gt;目录文件夹，然后将&lt;code class=&quot;highlighter-rouge&quot;&gt;class-dump&lt;/code&gt;文件拷贝到此目录下。&lt;/p&gt;
+
+    &lt;div class=&quot;language-powershell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;open /usr/local/bin
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;给&lt;code class=&quot;highlighter-rouge&quot;&gt;class-dump&lt;/code&gt;文件更改权限，终端输入如下命令：&lt;/p&gt;
+
+    &lt;div class=&quot;language-powershell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;sudo chmod &lt;/span&gt;777 /usr/local/bin/class-dump
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;在终端输入&lt;code class=&quot;highlighter-rouge&quot;&gt;class-dump&lt;/code&gt;  查看是否安装成功，如显示命令的介绍和版本信息，就说明已经安装成功。&lt;/p&gt;
+
+    &lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/02/19/5c6bcfe0d305f.png&quot; alt=&quot;img5&quot; /&gt;&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&quot;class-dump使用方法&quot;&gt;class-dump使用方法&lt;/h4&gt;
+
+&lt;p&gt;dump命令如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-powershell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt;-dump -H /Users/xxx/Desktop/century.app -o /Users/jerry/Desktop/centuryHeaders
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;其中，&lt;code class=&quot;highlighter-rouge&quot;&gt;-H&lt;/code&gt; 是生成头文件的命令，&lt;code class=&quot;highlighter-rouge&quot;&gt;-o&lt;/code&gt; 是指定的头文件保存目录，&lt;code class=&quot;highlighter-rouge&quot;&gt;/Users/xxx/Desktop/century.app&lt;/code&gt; 则是App文件的路径。&lt;/p&gt;
+
+&lt;p&gt;将在&lt;code class=&quot;highlighter-rouge&quot;&gt;centuryHeaders&lt;/code&gt;文件夹中看到所有dump出的头文件。如下示例：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/02/19/5c6bcfe0da5a0.png&quot; alt=&quot;img6&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Tips：如何从打包出来的xxx.ipa 文件中提取xxx.app 文件&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;先将&lt;code class=&quot;highlighter-rouge&quot;&gt;xxx.ipa&lt;/code&gt; 文件后缀名修改为&lt;code class=&quot;highlighter-rouge&quot;&gt;xxx.zip&lt;/code&gt; ， 然后解压&lt;code class=&quot;highlighter-rouge&quot;&gt;xxx.zip&lt;/code&gt; 文件，会得到一个名为&lt;code class=&quot;highlighter-rouge&quot;&gt;Payload&lt;/code&gt;的文件夹，文件夹中就放置的咱们需要的&lt;code class=&quot;highlighter-rouge&quot;&gt;xxx.app&lt;/code&gt;文件，导出即可。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;注意：&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;不是所有的xxx.app 文件都可以轻易的dump出头文件列表，只有未加密的，自己开发暂未上架App store 的app可以导出，App store 上架的三方应用由于被苹果加过密（加壳），不能直接dump，需要先进行砸壳（Dumpdecrypted工具）后，才能dump出需要的头文件。&lt;/p&gt;
+
+&lt;h3 id=&quot;后记&quot;&gt;后记&lt;/h3&gt;
+
+&lt;p&gt;至此，iOS开发中的Objective-C 代码混淆方案和class-dump技术的使用，都已经讲述清楚了，希望读者能体会到其中的安全攻防思路，在之后的开发中能多注意代码的安全防范。&lt;/p&gt;
+
+&lt;p&gt;注意：这种替换方法名的混淆方案会让App Store 审核被拒，2.3.1 - Performance We discovered that your app contains obfuscated code…，因此，不建议在App Store 上架的项目中使用。&lt;/p&gt;
+
+&lt;h3 id=&quot;参考资料&quot;&gt;参考资料：&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;https://blog.csdn.net/yiyaaixuexi/article/details/29201699&lt;/p&gt;
+
+  &lt;p&gt;https://www.jianshu.com/p/1e3fe0a8c048&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+        <pubDate>Sun, 03 Mar 2019 06:23:00 +0800</pubDate>
+        <link>http://localhost:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E6%96%B9%E6%B3%95%E5%90%8D%E6%9B%BF%E6%8D%A2(%E4%B8%80)/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E6%96%B9%E6%B3%95%E5%90%8D%E6%9B%BF%E6%8D%A2(%E4%B8%80)/</guid>
+        
+        <category>iOS</category>
+        
+        <category>代码混淆</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>iOS页面卡顿及性能优化</title>
+        <description>&lt;h3 id=&quot;卡顿产生的原因&quot;&gt;卡顿产生的原因&lt;/h3&gt;
+
+&lt;h4 id=&quot;在屏幕成像的过程中cpu和gpu的职责及&quot;&gt;在屏幕成像的过程中，CPU和GPU的职责及&lt;/h4&gt;
+
+&lt;p&gt;CPU：负责对象的创建和销毁、对象属性的调整、布局计算、文本的计算和排版、图片的格式转换和解码、图像的绘制（&lt;code class=&quot;highlighter-rouge&quot;&gt;Core Graphics&lt;/code&gt;）。&lt;/p&gt;
+
+&lt;p&gt;GPU：负责变换、合成、纹理的渲染。&lt;/p&gt;
+
+&lt;p&gt;CPU 把计算好的数据给 GPU，GPU 来渲染，渲染后的数据放在帧缓存（缓冲区，有两块缓冲区，前帧缓存和后帧缓存，协调使用，效率高）中。然后，视频控制器从缓冲区获取渲染后的数据显示在屏幕上。&lt;/p&gt;
+
+&lt;h4 id=&quot;图像显示原理&quot;&gt;图像显示原理&lt;/h4&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;引用YY大神对于图像显示原理的分析&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://blog.ibireme.com/wp-content/uploads/2015/11/ios_frame_drop.png&quot; alt=&quot;img1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;一帧（或一页）数据就是：一个垂直同步信号（&lt;code class=&quot;highlighter-rouge&quot;&gt;VSync&lt;/code&gt; ）和一个水平同步信号（&lt;code class=&quot;highlighter-rouge&quot;&gt;HSync&lt;/code&gt;）的组合。先发送一个垂直同步信号（&lt;code class=&quot;highlighter-rouge&quot;&gt;VSync&lt;/code&gt; ），代表即将显示一页，再发送一个水平同步信号（&lt;code class=&quot;highlighter-rouge&quot;&gt;HSync&lt;/code&gt;）就显示一帧。如果当下一次VSync信号到来之前，CPU和GPU还没有计算完成，就会产生卡顿。&lt;/p&gt;
+
+&lt;p&gt;在 VSync 信号到来后，系统图形服务会通过 CADisplayLink 等机制通知 App，App 主线程开始在 CPU 中计算显示内容，比如视图的创建、布局计算、图片解码、文本绘制等。随后 CPU 会将计算好的内容提交到 GPU 去，由 GPU 进行变换、合成、渲染。随后 GPU 会把渲染结果提交到帧缓冲区去，等待下一次 VSync 信号到来时显示到屏幕上。由于垂直同步的机制，如果在一个 VSync 时间内，CPU 或者 GPU 没有完成内容提交，则那一帧就会被丢弃，等待下一次机会再显示，而这时显示屏会保留之前的内容不变。这就是&lt;strong&gt;界面卡顿的原因&lt;/strong&gt;。&lt;/p&gt;
+
+&lt;p&gt;从上面的图中可以看到，CPU 和 GPU 不论哪个阻碍了显示流程，都会造成掉帧现象。所以开发时，也需要分别对 CPU 和 GPU 压力进行评估和优化。&lt;/p&gt;
+
+&lt;h3 id=&quot;卡顿的优化&quot;&gt;卡顿的优化&lt;/h3&gt;
+
+&lt;p&gt;从上述结论中可以得出，造成卡顿的原因是由CPU和GPU造成的，所有优化的时候也要从这两个方面来着手。那么解决卡顿的主要思路就是尽可能减少CPU、GPU资源消耗，按照60FPS的刷新帧率，每隔16ms就会有一次VSync信号。&lt;/p&gt;
+
+&lt;h4 id=&quot;cpu优化&quot;&gt;CPU优化&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;对象创建：&lt;/strong&gt;尽量用轻量级的对象，比如用不到事件处理的地方，可以考虑使用 &lt;code class=&quot;highlighter-rouge&quot;&gt;CALayer&lt;/code&gt; 取代 &lt;code class=&quot;highlighter-rouge&quot;&gt;UIView&lt;/code&gt; 。尽量推迟对象创建时间，并把对象的创建分到多个任务中去。如果对象可以复用，可以将对象放入缓存池中复用，这样cpu消耗会很小。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;对象调整：&lt;/strong&gt;不要频繁地调整 &lt;code class=&quot;highlighter-rouge&quot;&gt;UIView&lt;/code&gt; 的布局相关属性， 比如 &lt;code class=&quot;highlighter-rouge&quot;&gt;frame&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;bounds&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;center&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;transform&lt;/code&gt;等属性，尽量避免调整视图层次、添加和移除视图。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;布局计算&lt;/strong&gt;：尽量在后台提前计算好布局、并且对布局进行缓存，会提高很多性能。因为对这些属性调整会非常消耗资源，需一次性调整好，不要多次、频繁的计算修改这些属性。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Autolayout：&lt;/strong&gt;对于复杂视图&lt;code class=&quot;highlighter-rouge&quot;&gt;Autolayout&lt;/code&gt; 会比直接设置 &lt;code class=&quot;highlighter-rouge&quot;&gt;frame&lt;/code&gt; 消耗更多的 &lt;code class=&quot;highlighter-rouge&quot;&gt;CPU&lt;/code&gt; 资源。设置frame可以用一些工具（比如常用的:left/right/top/bottom/width/height 快捷属性），或使用ComponentKit、AsyncDisplayKit 等框架。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;文本处理：&lt;/strong&gt;文本的宽高计算会占用一部分资源，可以参数UILabel内部实现，用：&lt;code class=&quot;highlighter-rouge&quot;&gt;[NSAttributedString boundingRectWithSize:options:context:]&lt;/code&gt;来计算文本宽高，用&lt;code class=&quot;highlighter-rouge&quot;&gt;[NSAttributedString drawWithRect:options:context:] &lt;/code&gt;来绘制文本。为了不占用主线程资源，尽量放到后台处理。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;图片处理：&lt;/strong&gt;图片在创建为UIImage时不会立即解码，在设置到UIImageView中，CALayer被提交到GPU中时才会去解码并且会发生在主线程。为了绕开这个机制，会在后台先把图片绘制到CGBitmapContext 中，然后从 Bitmap 直接创建图片。目前常见的网络图片库都自带这个功能。图片的绘制过程也可以放到子线程进行，比如常见的&lt;code class=&quot;highlighter-rouge&quot;&gt; [UIView drawRect:] &lt;/code&gt;，原理如下：&lt;/p&gt;
+
+    &lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;display&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dispatch_async&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;backgroundQueue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;CGContextRef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CGBitmapContextCreate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(...);&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// draw in context...&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;CGImageRef&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;img&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CGBitmapContextCreateImage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;CFRelease&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ctx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;dispatch_async&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mainQueue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;layer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;contents&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;img&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;图片的 &lt;code class=&quot;highlighter-rouge&quot;&gt;size&lt;/code&gt; 最好刚好跟 &lt;code class=&quot;highlighter-rouge&quot;&gt;UIImageView&lt;/code&gt; 的 &lt;code class=&quot;highlighter-rouge&quot;&gt;size&lt;/code&gt; 保持一致。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;控制子线程的最大并发数量。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;gpu优化&quot;&gt;GPU优化&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;纹理渲染：&lt;/strong&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;GPU&lt;/code&gt; 能处理的最大纹理尺寸是 &lt;code class=&quot;highlighter-rouge&quot;&gt;4096x4096&lt;/code&gt;，一旦超过这个尺寸，就会占用 &lt;code class=&quot;highlighter-rouge&quot;&gt;CPU&lt;/code&gt; 资源进行预处理，这对CPU和GPU都会带来额外的资源消耗。 所以纹理尽量不要超过这个尺寸。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;视图混合：&lt;/strong&gt;GPU会将多个视图混合在一起，如果视图结构复杂会消耗过多GPU资源。所以，应该尽量减少视图数量和层次，尽量避免短时间内大量图片的显示，尽可能将多张图片合成一张进行显示。并在不透明的视图里标明 opaque 属性以避免无用的 Alpha 通道合成。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;图形生成：&lt;/strong&gt;设置CALayer 的border、圆角、阴影、遮罩（mask）通常都会触发离屏渲染，而离屏渲染通常是发生在GPU中。在开发中尽量减少这个属性的使用，可以尝试开启&lt;code class=&quot;highlighter-rouge&quot;&gt;CALayer.shouldRasterize&lt;/code&gt;的属性，会把原本离屏渲染操作转嫁到CPU上。对应只需要圆角的某些场合，可以用一张已经绘制好的圆角图片覆盖到原本视图上面来模拟相同的视觉效果。也可以把需要显示的图形在后台线程绘制为图片。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;卡顿检测&quot;&gt;卡顿检测&lt;/h4&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;主线程卡顿监控。通过子线程监测主线程的 runLoop，判断两个状态区域之间的耗时是否达到一定阈值。具体原理和实现，&lt;a href=&quot;http://www.tanhao.me/code/151113.html/&quot;&gt;这篇文章&lt;/a&gt;介绍得比较详细。&lt;/li&gt;
+  &lt;li&gt;FPS监控。要保持流畅的UI交互，App 刷新率应该当努力保持在 60fps。监控实现原理比较简单，通过记录两次刷新时间间隔，就可以计算出当前的 FPS。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;做性能优化的时候，不要过早的优化。根据业务需求，对流畅度要求高的地方优先进行优化，走修改代码- &amp;gt; Profile（测量）-&amp;gt; 修改代码的流程来逐步优化。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;参考资料&quot;&gt;参考资料&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;a href=&quot;https://blog.ibireme.com/2015/11/12/smooth_user_interfaces_for_ios/&quot;&gt;iOS 保持界面流畅的技巧&lt;/a&gt;&lt;/p&gt;
+
+  &lt;p&gt;&lt;a href=&quot;http://www.mengyueping.com/2018/08/19/iOS_optimization_all/&quot;&gt;iOS性能优化_讲的比较全面&lt;/a&gt;&lt;/p&gt;
+
+  &lt;p&gt;&lt;a href=&quot;https://wereadteam.github.io/2016/05/03/WeRead-Performance/&quot;&gt;微信读书 iOS 性能优化总结&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+        <pubDate>Sun, 03 Feb 2019 06:16:56 +0800</pubDate>
+        <link>http://localhost:4000/2019/02/iOS%E9%A1%B5%E9%9D%A2%E5%8D%A1%E9%A1%BF%E5%8F%8A%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/02/iOS%E9%A1%B5%E9%9D%A2%E5%8D%A1%E9%A1%BF%E5%8F%8A%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</guid>
+        
+        <category>iOS</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>iOS数据埋点方案</title>
+        <description>&lt;h3 id=&quot;代码埋点&quot;&gt;代码埋点&lt;/h3&gt;
+
+&lt;p&gt;代码埋点是一种常规且直观的方案，需要开发人员在需要埋点的页面或点击事件的响应方法中注入埋点统计相关方法进行数据统计上报。也可以接入三方统计分析SDK来实现，比如友盟&lt;code class=&quot;highlighter-rouge&quot;&gt;UMCAnalytics&lt;/code&gt;统计分析库。实现方式如下代码所示：&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 通过在HomeViewController 中的“页面已显示”和“页面已消失”两个回调中注入统计代码实现埋点&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@implementation&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;HomeViewController&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;//...other methods&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;viewDidAppear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BOOL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;animated&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;super&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;viewWillAppear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;animated&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;WUserStatistics&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;sendEventToServer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&quot;PAGE_EVENT_HOME_ENTER&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+ 
+&lt;span class=&quot;k&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;viewDidDisappear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BOOL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;animated&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;super&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;viewDidDisappear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;animated&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;WUserStatistics&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;sendEventToServer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&quot;PAGE_EVENT_HOME_LEAVE&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;这种埋点方式虽然实现起来简单，但是有很多缺点造成无法在实际项目中使用，如果需要埋点的页面很多，会增大工作量，代码侵入性太强，且不易于后期维护。&lt;/p&gt;
+
+&lt;h3 id=&quot;无埋点无痕埋点&quot;&gt;无埋点(无痕埋点)&lt;/h3&gt;
+
+&lt;p&gt;通过Runtime的Method Swizzling 特性使用 AOP面向切面编程的思想 hook住系统关键方法，注入埋点代理实现统计上报功能。这种方式对项目没有侵入性，可以对某个控件进行全局埋点，使用更灵活。&lt;/p&gt;
+
+&lt;p&gt;比如我们要对某个页面的打开次数做统计，那么可以对&lt;code class=&quot;highlighter-rouge&quot;&gt;UIViewController&lt;/code&gt;添加分类&lt;code class=&quot;highlighter-rouge&quot;&gt;UIViewController+userStastistics&lt;/code&gt;来对控制器的&lt;code class=&quot;highlighter-rouge&quot;&gt;viewWillAppear:&lt;/code&gt;方法进行hook，注入次数统计代码，代码示例如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// UIViewController 的分类&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;@implementation&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;UIViewController&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;userStastistics&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dispatch_once_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;onceToken&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dispatch_once&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;onceToken&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;SEL&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;originalSelector&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;viewWillAppear&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;SEL&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;swizzledSelector&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;swiz_viewWillAppear&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// 使用hook工具(内部使用Method swizzing技术实现)交换两个方法的实现(IMP)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HookUtility&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;swizzlingInClass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;originalSelector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;originalSelector&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;swizzledSelector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;swizzledSelector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;cp&quot;&gt;#pragma mark - Method Swizzling
+&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;swiz_viewWillAppear&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BOOL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;animated&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;   
+    &lt;span class=&quot;c1&quot;&gt;// 注意：此行代码的调用实质上执行的是viewWillAppear: 的原生实现&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;swiz_viewWillAppear&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;animated&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    
+    &lt;span class=&quot;c1&quot;&gt;// 添加埋点统计代码，用于记录页面打开次数&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Add&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;your&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;custom&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Analytics&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;code&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;@end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;上述代码就可以实现无侵入性的数据埋点，但是这种方法会对所有&lt;code class=&quot;highlighter-rouge&quot;&gt;UIViewController&lt;/code&gt;及其子类的&lt;code class=&quot;highlighter-rouge&quot;&gt;viewWillAppear:&lt;/code&gt;方法进行hook代码注入，也就是说所有页面都会被统计进去，为了实现部分页面的统计，可以进行过滤，或使用白名单。&lt;/p&gt;
+
+&lt;h3 id=&quot;事件唯一id的确定&quot;&gt;事件唯一ID的确定&lt;/h3&gt;
+
+&lt;p&gt;在对事件进行上报的时候，需要对事件进行标记，我们可以创建一个plist配置表对每个事件定义一个唯一标识符、事件id、相关参数等信息，然后在埋点响应方法中通过获取事件发生的类名或方法名来确定事件，并上传到统计服务器。&lt;/p&gt;
+
+&lt;h3 id=&quot;aop编程&quot;&gt;AOP编程&lt;/h3&gt;
+
+&lt;p&gt;Aspect Oriented Programming （AOP）是面向切面编程，利用AOP可以对业务逻辑的各个部分进行隔离，从而使得业务逻辑各部分之间的耦合度降低，提高程序的可重用性，同时提高了开发的效率。实现方式如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/posts/aop-image.png&quot; alt=&quot;img1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;AOP的主要功能是：日志记录、性能统计、安全控制、事务处理、异常处理等。&lt;/p&gt;
+
+&lt;p&gt;主要的意图是：将日志记录，性能统计，安全控制，事务处理，异常处理等代码从业务逻辑代码中划分出来，通过对这些行为的分离，我们希望将它们独立到非指导业务逻辑的方法中，进而改  变这些行为的时候不影响业务逻辑的代码。&lt;/p&gt;
+
+&lt;p&gt;可以通过预编译方式和运行期动态代理实现在不修改源代码的情况下给程序动态统一添加功能的一种技术。AOP是横向切入系统，提取各个模块可能都要重复操作的部分（如：权限检查，日志记录等等），是OOP的一个有效补充。&lt;/p&gt;
+
+&lt;p&gt;在iOS开发中，&lt;strong&gt;Aspects&lt;/strong&gt;三方库就是基于AOP的思想来实现的，内部使用了ObjC动态特性Method swizzling Hook住原生方法注入block中的自定义代码。通过使用这个库，可以简单高效的实现无埋点数据统计。&lt;/p&gt;
+
+&lt;h3 id=&quot;无埋点采集&quot;&gt;无埋点采集&lt;/h3&gt;
+
+&lt;p&gt;下面我们将介绍几种常用的UI控件的事件采集方式，分别可以这样实现：&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;UIViewController&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;主要是收集页面的生命周期，采用hook UIViewController的&lt;code class=&quot;highlighter-rouge&quot;&gt;viewWillAppear：&lt;/code&gt;方法，将埋点代码插入到被替换的&lt;code class=&quot;highlighter-rouge&quot;&gt;xxx_viewWillAppear:&lt;/code&gt;方法中，实现采集。&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HookUtility&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;swizzlingInClass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;originalSelector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;viewWillAppear&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;swizzledSelector&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xxx_viewWillAppear&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)];&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;UIControl&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;针对UIControl，HubbleData采用的是hook UIControl的&lt;code class=&quot;highlighter-rouge&quot;&gt;sendAction:to:forEvent:&lt;/code&gt;方法。由官方文档可知，在UIControl执行对应的action时都会首先调用&lt;code class=&quot;highlighter-rouge&quot;&gt;sendAction:to:forEvent:&lt;/code&gt;方法，HubbleData的实现如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DASwizzler&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;swizzleSendActionSelector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;sendAction&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;to&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;forEvent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+                              &lt;span class=&quot;n&quot;&gt;onClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UIControl&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+                            &lt;span class=&quot;n&quot;&gt;withBlock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;executeBlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;考虑到UIControl的子类较多，所以HubbleData选取了其中使用较多的几种进行了特殊的分析：主要是UITextField、UIButton和UISwitch，其余的暂时未做特殊分析。具体的埋点的采集设计为：无论是哪种UIControl，EventID均采用的是第三部分介绍的唯一标识字符串的SHA256编码值，但是相关采集properties有所差别。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;UITextField&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;UITextField是UIControl的一个子类，由于UITextField涉及到用户的隐私比较多，比如用户名、密码、聊天文本等，所以HubbleData不会对此类的UITextField进行埋点的采集。&lt;/p&gt;
+
+&lt;p&gt;HubbleData主要采集的是UISearchBar中的UITextField，即UISearchBarTextField，并获取搜索的文本内容，这对于一些电商类的App来说，能够较好的分析用户感兴趣的商品等，这是作为HubbleData SDK无埋点的一个需求。&lt;/p&gt;
+
+&lt;p&gt;hook住&lt;code class=&quot;highlighter-rouge&quot;&gt;sendAction:to:forEvent:&lt;/code&gt;后，如果对UISearchBarTextField的所有actions都进行hook的话，那么_searchFieldBeginEditing、_searchFieldEndEditing等所有的action发生的时候都会进行数据的采集，会采集到很多无用的信息，导致采集的数据混乱。HubbleData SDK只有当_searchFieldEndEditing action发生时才会进行埋点，收集的properties为：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;(1) type 为UIControl采集的事件类型，这里设置为searchBarEvent；
+(2) page 为当前页面的名称，用于前端显示用；
+(3) searchText 为_searchFieldEndEditing发生时采集到搜索框的搜索文字（此字段不为空）；
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;这样就能对搜索框进行无埋点采集，并能收集搜索的文本内容。此方法只是在_searchFieldEndEditing发生时采集数据，有可能该action执行时并未尽兴真正的搜索操作，可能会与业务数据库的数据有出入，但是也能够较为准确的分析用户感兴趣的搜索内容。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;UIButton&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;UIButton是最常见的一种UIControl，由于UIButton在使用过程中会有多种状态，所有在记录的时候需要上报更详细的参数，可以添加&lt;code class=&quot;highlighter-rouge&quot;&gt;titleColor&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;imageName&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;frame&lt;/code&gt;等属性来做具体区分。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;UISwitch&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;类似于UIButton，只不过这里要采集switchState，即当前的开关状态，具体的采集属性为：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;(1) type 为UIControl采集的事件类型，这里设置为switchEvent；
+(2) page 为当前页面的名称，用于前端显示用；
+(3) switchState 为switch的开关状态；
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;UITableView和UICollectionView&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;针对UITableView和UICollectionView，HubbleData采用的是先hook UITableView和UICoolectionView的&lt;code class=&quot;highlighter-rouge&quot;&gt;setDelegate:&lt;/code&gt;方法，然后找到对应的delegate，然后再hook delegate类中的&lt;code class=&quot;highlighter-rouge&quot;&gt;tableView:didSelectRowAtIndexPath:&lt;/code&gt;方法和UICollectionView的&lt;code class=&quot;highlighter-rouge&quot;&gt;collectionView:didSelectItemAtIndexPath:&lt;/code&gt;方法。这里以UITableView为例：&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;//先hook setDelegate:方法&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DASwizzler&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;swizzleSelector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;setDelegate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:)&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;onClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UITableView&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+                  &lt;span class=&quot;n&quot;&gt;withBlock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;executeSetDelegateBlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;//再hook delegate的tableView:didSelectRowAtIndexPath:方法&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;executeSetDelegateBlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SEL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SEL&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;command&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UITableViewDelegate&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;delegate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;delegate&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;respondsToSelector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;tableView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;didSelectRowAtIndexPath&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)])&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DASwizzler&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;swizzleSelector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;tableView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;didSelectRowAtIndexPath&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+                                &lt;span class=&quot;n&quot;&gt;onClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;delegate&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+                              &lt;span class=&quot;n&quot;&gt;withBlock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;executeBlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// &quot;executeBlock&quot; block 中插入埋点代码&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;EventID按照上述介绍的方法获取，只不过这里要注意的是，获取的并不是UITableView的唯一标识字符串而是对应的点击的cell的唯一标识字符串。采集的properties为：&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;为&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UITableView&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;采集的事件类型，这里设置为&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tableViewSelectEvent&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;；&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;page&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;为当前页面的名称，用于前端显示用；&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;section&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;为点击的&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cell&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;所在的&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;section&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;；&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;row&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;为点击的&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cell&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;所在的&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;row&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;；&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;UIGestureRecognizer&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;在iOS开发中，经常会使用一些手势来处理一些点击的操作，所以也有必要对UIGestureRecognizer进行hook。HubbleData 并不是直接针对UIGestureRecognizer这个类进行hook，而是hook UIView类的&lt;code class=&quot;highlighter-rouge&quot;&gt;addGestureRecognizer:&lt;/code&gt;方法，实现如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// hook addGestureRecognizer： 方法&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DASwizzler&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;swizzleSelector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;addGestureRecognizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:)&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;onClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UIView&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+                  &lt;span class=&quot;n&quot;&gt;withBlock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;executeBlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// 执行block 判断手势类型，并插入响应埋点代码&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;executeBlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SEL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SEL&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;command&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;arg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arg&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;isKindOfClass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UITapGestureRecognizer&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arg&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;isKindOfClass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UILongPressGestureRecognizer&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]])&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arg&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;addTarget&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;da_autoEventAction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)];&lt;/span&gt;
+            &lt;span class=&quot;c1&quot;&gt;//在本类下添加一个action的实现&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;...........&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;通过hook &lt;code class=&quot;highlighter-rouge&quot;&gt;addGestureRecognizer:&lt;/code&gt;方法，可以得到该UIView所添加的UIGestureRecognizer，这里只对UITapGestureRecognizer和UILongPressGestureRecognizer进行处理，其他的手势暂未做处理。得到相应的UIGestureRecognizer，添加一个action，当该手势执行的时候，同样会执行该action，在action中执行埋点的操作。&lt;/p&gt;
+
+&lt;p&gt;这里获取的是UIGestureRecognizer所在的UIView的唯一标识标识字符串编码作为EventID,采集的属性为：&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;为&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UIGestureRecognizer&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;采集的事件类型，这里设置为&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gestureTapEvent&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;；&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;page&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;为当前页面的名称，用于前端显示用；&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;参考资料&quot;&gt;参考资料&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;a href=&quot;http://limbank.com/2018/03/01/post14/&quot;&gt;iOS数据埋点统计方案–陈满&lt;/a&gt;&lt;/p&gt;
+
+  &lt;p&gt;&lt;a href=&quot;http://ios.jobbole.com/85214/&quot;&gt;iOS动态性可复用而且高度解耦的用户统计埋点实现&lt;/a&gt;&lt;/p&gt;
+
+  &lt;p&gt;&lt;a href=&quot;https://neyoufan.github.io/2017/04/19/ios/%E7%BD%91%E6%98%93HubbleData%E6%97%A0%E5%9F%8B%E7%82%B9SDK%E5%9C%A8iOS%E7%AB%AF%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/&quot;&gt;网易HubbleData无埋点SDK在iOS端的设计与实现&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+        <pubDate>Thu, 31 Jan 2019 06:16:56 +0800</pubDate>
+        <link>http://localhost:4000/2019/01/iOS%E6%95%B0%E6%8D%AE%E5%9F%8B%E7%82%B9%E6%96%B9%E6%A1%88/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/01/iOS%E6%95%B0%E6%8D%AE%E5%9F%8B%E7%82%B9%E6%96%B9%E6%A1%88/</guid>
+        
+        <category>iOS</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>App常见崩溃分析</title>
+        <description>&lt;h3 id=&quot;前言&quot;&gt;前言&lt;/h3&gt;
+
+&lt;p&gt;在iOS开发调试过程中，我们会遇到很多崩溃问题，比如数组越界、容器中插入nil、或调用不存在的方法时都会出现崩溃现象。那么，为了能更好的应对并避免这些常见崩溃问题的发生，就是我们亟待需要解决的问题。下面我们将分析iOS开发中常见的几个崩溃，并结合示例给出这类问题的解决方案。&lt;/p&gt;
+
+&lt;h4 id=&quot;nsinvalidargumentexception&quot;&gt;NSInvalidArgumentException&lt;/h4&gt;
+
+&lt;p&gt;从字面上来看，是无效的参数异常，但是触发这个异常的场景还有很多，最常见的就是在NSArray，NSDictionary容器中插入&lt;code class=&quot;highlighter-rouge&quot;&gt;nil&lt;/code&gt;时发生，例如下面代码所示：&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 示例代码&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;password&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;NSDictionary&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dict&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;@{&lt;/span&gt;
+                       &lt;span class=&quot;s&quot;&gt;@&quot;userName&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;@&quot;bruce&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                       &lt;span class=&quot;s&quot;&gt;@&quot;password&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;password&lt;/span&gt;
+                       &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;NSLog&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&quot;dict is : %@&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// 崩溃日志&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;***&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Terminating&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;app&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;due&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;to&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;uncaught&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;exception&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSInvalidArgumentException&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reason&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;***&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSPlaceholderDictionary&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;initWithObjects&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;forKeys&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;attemp&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;to&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;insert&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;objects&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;'&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;这种崩溃原因，从控制台输出的异常信息就可以直观的看出来，是给NSDictionary 插入了nil对象造成的崩溃。在日常开发中，如果对方法入参没有做判空处理，或是后台返回的json数据中包含nil时就会造成此异常。那么如何防止这种崩溃的发生呢？&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;解决方案一&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;对指定的方法入参进行判空处理，对后台返回的数据转model的时候，增加null空值判断，或是封装为NSNull对象进行存储。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;解决方案二&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;代码改动量少，无侵入性的方案，就是利用Runtime 动态特性，swizzle Method 方式hook住NSArray、NSDictionary 等方法的插入对象时的系统原生方法，然后注入对空对象nil 的检查并封装为NSNull 的ObjC对象，这样就可以避免程序的直接崩溃。实例代码如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 下列方法为Method swizzling 交换后的方法实现&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;instancetype&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;gl_dictionaryWithObjects&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[])&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;objects&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;forKeys&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSCopying&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[])&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;keys&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSUInteger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;cnt&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;safeObjects&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;cnt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;safeKeys&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;cnt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;NSUInteger&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSUInteger&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cnt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;key&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keys&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;objects&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;continue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSNull&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;safeKeys&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;safeObjects&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;gl_dictionaryWithObjects&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;safeObjects&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;forKeys&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;safeKeys&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;unrecognized-selector-sent-to-instance-xxx-异常&quot;&gt;unrecognized selector sent to instance xxx 异常&lt;/h3&gt;
+
+&lt;p&gt;这种异常很常见，意思是给一个对象发送了一个自己没有的消息，也就是说调用了一个不属于自己的方法。由于Objc有一个消息转发机制，当在该对象的类方法列表中找不到，所调用的方法时，_objc_msgForward就会触发消息转发，如果在转发过程中任然没有得到方法的实现，那么就会抛出unrecognized selector 异常，可参考这篇文章了解&lt;a href=&quot;https://juejin.im/post/5aa79411f265da237a4cb045&quot;&gt;消息转发&lt;/a&gt;。&lt;/p&gt;
+
+&lt;h3 id=&quot;nsrangeexception&quot;&gt;NSRangeException&lt;/h3&gt;
+
+&lt;p&gt;当代码中试图去访问对象的范围内不存在的索引的时候，根据堆栈信息可以追溯到这个异常，比如：&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;[__NSArrayM objectAtIndex:]: index 11 beyond bounds [0 .. 10]&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;大多数情况下引起这个问题的原因是数组和字符串，比如：&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;NSArray&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;@[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;@1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;@2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;@3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;@4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;NSNumber&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arr&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;objectAtIndex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;9&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// 抛出异常&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mainString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;@”&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;myString&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;”&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;subString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mainString&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;substringToIndex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;24&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// 抛出异常&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;避免这种异常很简单，及时确保索引在对象的范围内，比如：&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;NSNumber&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;NSArray&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;@[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;@1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;@2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;@3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;@4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arr&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;9&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arr&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;objectAtIndex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;9&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;subString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; 
+&lt;span class=&quot;n&quot;&gt;NSString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mainString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;@”&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;myString&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;”&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mainString&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;24&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;subString&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mainString&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;substringToIndex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;24&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;exc_bad_access&quot;&gt;EXC_BAD_ACCESS&lt;/h3&gt;
+
+&lt;p&gt;在访问一个已经释放的对象或向它发送消息时，EXC_BAD_ACCESS就会出现。造成EXC_BAD_ACCESS最常见的原因是，在初始化方法中初始化变量时用错了所有权修饰符，这会导致对象过早地被释放。举个例子，在&lt;code class=&quot;highlighter-rouge&quot;&gt;viewDidLoad&lt;/code&gt;方法中为&lt;code class=&quot;highlighter-rouge&quot;&gt;UIViewController&lt;/code&gt;创建了一个包含元素的NSArray，却将该数组的所有权修饰符设成了assign而不是strong。现在在&lt;code class=&quot;highlighter-rouge&quot;&gt;viewWillAppear&lt;/code&gt;中，若要访问已经释放掉的对象时，就会得到名为EXC_BAD_ACCESS的崩溃。&lt;/p&gt;
+
+&lt;p&gt;这个崩溃发生时，查看崩溃日志，却往往得不到有用的栈信息。还好，有一个方法用来解决这个问题：NSZombieEnabled。&lt;/p&gt;
+
+&lt;p&gt;这是一个环境变量，用来调试与内存相关的问题，跟踪对象的释放过程。启用了NSZombieEnabled的话，它会用一个僵尸实现来去你的默认的dealloc实现，也就是在引用计数降到0时，该僵尸实现会将该对象转换成僵尸对象。僵尸对象的作用是在你向它发送消息时，它会显示一段日志并自动跳入调试器。&lt;/p&gt;
+
+&lt;p&gt;所以，当在应用中启用NSZombie而不是让应用直接崩溃时，一个错误的内存访问就会变成一条无法识别的消息发送给僵尸对象。僵尸对象会显示接收到的消息，然后跳入调试器，这样你就可以查看到底哪时出了问题。 可以在Xcode的scheme页面中设置NSZombieEnabled环境变量。点击Product—&amp;gt;Edit Scheme打开该页面，然后勾选Enable Zombie Objects复选框，如图所示：&lt;/p&gt;
+
+&lt;p&gt;僵尸在ARC出现以前作用很大。但自从有了ARC，如果你在对象的所有权方面比较注意，那么通常不会碰到内存相关的崩溃。&lt;/p&gt;
+
+&lt;h3 id=&quot;sigsegv-异常&quot;&gt;SIGSEGV 异常&lt;/h3&gt;
+
+&lt;p&gt;段错误信息（SIGSEGV）是操作系统产生的一个更严重的问题。当硬件出现错误、访问不可读的内存地址或向受保护的内存地址写入数据时，就会发生这个错误。&lt;/p&gt;
+
+&lt;p&gt;硬件错误这一情况并不常见。当要读取保存在RAM中的数据，而该位置的RAM硬件有问题时，你会收到SIGSEGV。SIGSEGV更多是出现在后两种情况。默认情况下，代码页不允许进行写操作，而数据而不允许进行执行操作。当应用中的某个指针指向代码页并试图修改指向位置的值时，你会收到SIGSEGV。当要读取一个指针的值，而它被初始化成指向无效内存地址的垃圾值时，你也会收到SIGSEGV。&lt;/p&gt;
+
+&lt;p&gt;SIGSEGV错误调试起来更困难，而导致SIGSEGV的最常见原因是不正确的类型转换。要避免过度使用指针或尝试手动修改指针来读取私有数据结构。如果你那样做了，而在修改指针时没有注意内存对齐和填充问题，就会收到SIGSEGV。&lt;/p&gt;
+
+&lt;p&gt;举个常见的例子，在使用代理的时候：&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// 代理应该是用weak修饰的&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;delegate&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;myView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// myView从UINavigationController中Pop之后就会被销毁，而self.delegate仍然起作用，成了野指针&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// 将会抛出异常&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;delegate&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;doSomething&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;避免这种异常可以在调用之前检查一下代理是否为空，是否能够响应所给的&lt;code class=&quot;highlighter-rouge&quot;&gt;Selector&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;delegate&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;delegate&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;respondsToSelector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;doSomething&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)])&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;delegate&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;doSomething&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;sigabrt&quot;&gt;SIGABRT&lt;/h3&gt;
+
+&lt;p&gt;SIGABRT代表SIGNAL ABORT（中止信号）。当操作系统发现不安全的情况时，它能够对这种情况进行更多的控制；必要的话，它能要求进程进行清理工作。在调试造成此信号的底层错误时，并没有什么妙招。Cocos2d或UIKit等框架通常会在特定的前提条件没有满足或一些糟糕的情况出现时调用C函数abort（由它来发送此信号）。当SIGABRT出现时，控制台通常会输出大量的信息，说明具体哪里出错了。由于它是可控制的崩溃，所以可以在LLDB控制台上键入bt命令打印出回溯信息。&lt;/p&gt;
+
+&lt;h3 id=&quot;sigbus&quot;&gt;SIGBUS&lt;/h3&gt;
+
+&lt;p&gt;总线错误信号（SIGBUG）代表无效内存访问，即访问的内存是一个无效的内存地址。也就是说，那个地址指向的位置根本不是物理内存地址（它可能是某个硬件芯片的地址）。SIGSEGV和SIGBUS都羽毛球EXC_BAD_ACCESS的子类型。&lt;/p&gt;
+
+&lt;h3 id=&quot;sigtrap&quot;&gt;SIGTRAP&lt;/h3&gt;
+
+&lt;p&gt;SIGTRAP代表陷阱信号。它并不是一个真正的崩溃信号。它会在处理器执行trap指令发送。LLDB调试器通常会处理此信号，并在指定的断点处停止运行。如果你收到了原因不明的SIGTRAP，先清除上次的输出，然后重新进行构建通常能解决这个问题。&lt;/p&gt;
+
+&lt;h3 id=&quot;sigill&quot;&gt;SIGILL&lt;/h3&gt;
+
+&lt;p&gt;SIGILL代表signal illegal instruction(非法指令信号)。当在处理器上执行非法指令时，它就会发生。执行非法指令是指，将函数指针会给另外一个函数时，该函数指针由于某种原因是坏的，指向了一段已经释放的内存或是一个数据段。有时你收到的是EXC_BAD_INSTRUCTION而不是SIGILL，虽然它们是一回事，不过EXC_*等同于此信号不依赖体系结构。&lt;/p&gt;
+
+&lt;h3 id=&quot;参考资料&quot;&gt;参考资料&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;a href=&quot;https://cnbin.github.io/blog/2016/03/15/ioszhong-de-beng-kui-lei-xing/&quot;&gt;iOS中的崩溃类型&lt;/a&gt;&lt;/p&gt;
+
+  &lt;p&gt;&lt;a href=&quot;http://devma.cn/blog/2016/11/10/ios-beng-kui-crash-jie-xi/&quot;&gt;iOS 崩溃Crash解析&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
 
 </description>
-        <pubDate>Mon, 15 Feb 2016 14:32:24 +0800</pubDate>
-        <link>http://localhost:4000/2016/02/sample-post/</link>
-        <guid isPermaLink="true">http://localhost:4000/2016/02/sample-post/</guid>
+        <pubDate>Thu, 17 Jan 2019 06:16:31 +0800</pubDate>
+        <link>http://localhost:4000/2019/01/App%E5%B8%B8%E8%A7%81%E5%B4%A9%E6%BA%83%E5%88%86%E6%9E%90/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/01/App%E5%B8%B8%E8%A7%81%E5%B4%A9%E6%BA%83%E5%88%86%E6%9E%90/</guid>
+        
+        <category>iOS</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>App启动分析与优化策略</title>
+        <description>&lt;h3 id=&quot;启动过程分析&quot;&gt;启动过程分析&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;解析Info.plist&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;ul&gt;
+      &lt;li&gt;加载相关信息，例如闪屏&lt;/li&gt;
+      &lt;li&gt;沙箱建立、权限检查&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Mach-O加载&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;blockquote&gt;
+      &lt;p&gt;&lt;strong&gt;Mach-O 文件&lt;/strong&gt;：我们写的程序想要跑起来，肯定它的可执行文件格式要被操作系统所理解。比如ELF是Linux下的可执行文件格式，那么对于OS X / iOS来说，Mach-O 是其可执行文件格式。&lt;/p&gt;
+
+      &lt;p&gt;&lt;strong&gt;Mach-O格式主要包括以下几种文件类型：&lt;/strong&gt;&lt;/p&gt;
+
+      &lt;ul&gt;
+        &lt;li&gt;Executable：应用的主要二进制&lt;/li&gt;
+        &lt;li&gt;Dylib：动态链接库&lt;/li&gt;
+        &lt;li&gt;Bundle：不能被链接，只能在运行时使用dlopen加载&lt;/li&gt;
+        &lt;li&gt;Image：包含Executable、Dylib和Bundle&lt;/li&gt;
+        &lt;li&gt;Framework：包含Dylib、资源文件和头文件的文件夹&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/blockquote&gt;
+
+    &lt;ul&gt;
+      &lt;li&gt;如果是胖二进制文件，寻找合适当前CPU类别的部分&lt;/li&gt;
+      &lt;li&gt;加载所有依赖的Mach-O文件（递归调用Mach-O加载的方法）&lt;/li&gt;
+      &lt;li&gt;定位内部、外部指针引用，例如字符串、函数等&lt;/li&gt;
+      &lt;li&gt;执行声明为&lt;code class=&quot;highlighter-rouge&quot;&gt;__attribute__((constructor))&lt;/code&gt;的C函数&lt;/li&gt;
+      &lt;li&gt;加载类扩展（Category）中的方法&lt;/li&gt;
+      &lt;li&gt;C++静态对象加载、调用ObjC的 &lt;code class=&quot;highlighter-rouge&quot;&gt;+load&lt;/code&gt; 函数&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;程序执行&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;ul&gt;
+      &lt;li&gt;调用&lt;code class=&quot;highlighter-rouge&quot;&gt;main()&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;调用&lt;code class=&quot;highlighter-rouge&quot;&gt;UIApplicationMain()&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;调用&lt;code class=&quot;highlighter-rouge&quot;&gt;applicationWillFinishLaunching&lt;/code&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;测量app的启动时间&quot;&gt;测量App的启动时间&lt;/h3&gt;
+
+&lt;p&gt;iOS App的启动有两种方式：冷启动和热启动，下面对这两种启动方式进行简单介绍。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;冷启动：&lt;/strong&gt;App第一次启动或者是被上滑Kill掉之后，再次从点击App应用图标到App完全启动显示主页面为止的过程成为冷启动。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;热启动：&lt;/strong&gt;当用户从当前App按下HOME键退出后，系统并不会立即kill掉App的进程，还会继续后台执行一段时间(至于什么时候会被kill，完全取决于系统内存等资源的使用情况，理想情况下可以保持后台运行15min)。然后当用户再次点击App图标时，会很快加载到上次停留的页面，几乎不需要进行资源载入，这种情况下的启动成为热启动。&lt;/p&gt;
+
+&lt;p&gt;下面我们对于App启动时间的测量只讨论在冷启动情形下。根据苹果官方介绍，iOS应用的启动分为两个阶段:&lt;code class=&quot;highlighter-rouge&quot;&gt;pre-main&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;main&lt;/code&gt;，所以App启动的总时间为：Total Time = pre-main Time + main Time。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Pre-main 阶段&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Pre-mian 阶段即&lt;code class=&quot;highlighter-rouge&quot;&gt;main()&lt;/code&gt;函数被调用之前的加载时间，包括dylib动态库的加载、Mach-O文件加载、Rebase/Bining、Objective-C Runtime 加载等。该过程如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://lingyuncxb.com/2018/01/30/iOS%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96/04.png&quot; alt=&quot;pre-main-img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;main 阶段&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;main 阶段指的是从调用&lt;code class=&quot;highlighter-rouge&quot;&gt;main()&lt;/code&gt;函数开始，调用&lt;code class=&quot;highlighter-rouge&quot;&gt;UIApplicationMain()&lt;/code&gt;创建&lt;code class=&quot;highlighter-rouge&quot;&gt;UIApplication,AppDelegate&lt;/code&gt;，直到回调App代理方法&lt;code class=&quot;highlighter-rouge&quot;&gt;applicationDidBecomeActive:&lt;/code&gt;为止，其中包括&lt;code class=&quot;highlighter-rouge&quot;&gt;application:didFinishLaunchingWithOptions&lt;/code&gt;方法中创建&lt;code class=&quot;highlighter-rouge&quot;&gt;keyWindow&lt;/code&gt;、三方sdk和其他初始化项所消耗的时间，也包含RootViewController 的 ChildViewController的view完全显示出来所花费的时间。该过程如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://lingyuncxb.com/2018/01/30/iOS%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96/05.png&quot; alt=&quot;main-img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;pre-main 阶段时间测量&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;那么对于&lt;strong&gt;pre-main&lt;/strong&gt; 和 &lt;strong&gt;main&lt;/strong&gt; 启动阶段的耗时如何测量呢？苹果已为我们提供了一个简单易用的测试方法：在Xcode中选中项目的&lt;code class=&quot;highlighter-rouge&quot;&gt;Scheme&lt;/code&gt;→ &lt;code class=&quot;highlighter-rouge&quot;&gt;Edit Scheme...&lt;/code&gt;→，然后选择&lt;code class=&quot;highlighter-rouge&quot;&gt;Run&lt;/code&gt;→&lt;code class=&quot;highlighter-rouge&quot;&gt;Arguments&lt;/code&gt;→&lt;code class=&quot;highlighter-rouge&quot;&gt;Environment Variables&lt;/code&gt;中添加Name = &lt;code class=&quot;highlighter-rouge&quot;&gt;DYLD_PRINT_STATISTICSvalue&lt;/code&gt;，Value = 1 的环境变量。如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://i.loli.net/2019/03/12/5c874f9e3f0de.png&quot; alt=&quot;arguments-img&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;然后重新运行项目，注意控制台下面的打印输出，格式为：&lt;/p&gt;
+
+&lt;div class=&quot;language-swift highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;Total&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pre&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;655.68&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;milliseconds&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;100.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+         &lt;span class=&quot;n&quot;&gt;dylib&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loading&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;205.67&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;milliseconds&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;31.3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;rebase&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;binding&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;320.95&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;milliseconds&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;48.9&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;kt&quot;&gt;ObjC&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;setup&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;mf&quot;&gt;63.07&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;milliseconds&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;9.6&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+           &lt;span class=&quot;n&quot;&gt;initializer&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;mf&quot;&gt;65.85&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;milliseconds&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;10.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+           &lt;span class=&quot;n&quot;&gt;slowest&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;intializers&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+             &lt;span class=&quot;n&quot;&gt;libSystem&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;dylib&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;   &lt;span class=&quot;mf&quot;&gt;3.43&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;milliseconds&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;libMainThreadChecker&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;dylib&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;mf&quot;&gt;15.59&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;milliseconds&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;2.3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+                       &lt;span class=&quot;nv&quot;&gt;century&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;mf&quot;&gt;76.56&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;milliseconds&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;11.6&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+                           
+&lt;span class=&quot;c1&quot;&gt;// 内容解读&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;Total&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pre&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;表示pre&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main阶段总的时间消耗为655&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;68&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;毫秒&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;dylib&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loading&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;	 &lt;span class=&quot;n&quot;&gt;动态库加载时间&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;rebase&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;binding&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;重定位指针指向&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;指向镜像外部内容&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;所需时间&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;ObjC&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;setup&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ObjC初始化时间&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;initializer&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;其他初始化时间的总和&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;slowest&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;intializers&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;最慢的三个初始化分别是libSystem&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dylib&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;、&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;libMainThreadChecker&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dylib&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;、&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;century&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;项目名称&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;main 阶段时间测量&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;由于main阶段涉及到大量的自定义代码，app主体页面的初始化、前期配置、三方库初始化等大量逻辑代理，iOS系统没有直接的测量方式，所以只能通过打点的方式计算启动开始到启动结束的时间差即可。例如下面示例代码：&lt;/p&gt;
+
+&lt;div class=&quot;language-objc highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// main.m 文件&lt;/span&gt;
+&lt;span class=&quot;cp&quot;&gt;#import &amp;lt;UIKit/UIKit.h&amp;gt;
+#import &quot;AppDelegate.h&quot;
+&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;extern&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CFAbsoluteTime&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StartTime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[])&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// 记录开始时间&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;StartTime&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CFAbsoluteTimeGetCurrent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;err&quot;&gt;@autoreleasepool&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UIApplicationMain&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NSStringFromClass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;AppDelegate&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]));&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// AppDelegate.m 文件&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;CFAbsoluteTime&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StartTime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;applicationDidBecomeActive&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;UIApplication&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;application&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dispatch_async&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dispatch_get_main_queue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;^&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;NSUInteger&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;milliseconds&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NSUInteger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CFAbsoluteTimeGetCurrent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StartTime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;NSLog&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&quot;Loading done in %lu ms&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;milliseconds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;影响启动性能的因素&quot;&gt;影响启动性能的因素&lt;/h3&gt;
+
+&lt;p&gt;接下来我们讨论在App启动的pre-main阶段和mian阶段，影响启动性能的多种因素。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Pre-main 阶段&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;动态库加载越多，启动越慢。&lt;/li&gt;
+  &lt;li&gt;ObjC类越多，启动越慢&lt;/li&gt;
+  &lt;li&gt;C的constructor函数越多，启动越慢&lt;/li&gt;
+  &lt;li&gt;C++静态对象越多，启动越慢&lt;/li&gt;
+  &lt;li&gt;ObjC的&lt;code class=&quot;highlighter-rouge&quot;&gt;+load&lt;/code&gt;方法使用越多，启动越慢&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;我们尽量不要写&lt;code class=&quot;highlighter-rouge&quot;&gt;__attribute__((constructor))&lt;/code&gt;的C函数，也尽量不要用到C++的静态对象；至于ObjC的&lt;code class=&quot;highlighter-rouge&quot;&gt;+load&lt;/code&gt;方法，似乎大家已经习惯不用它了。任何情况下，能用&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_once()&lt;/code&gt;来完成的，就尽量不要用到以上的方法。&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;main 阶段&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;执行main()函数的耗时&lt;/li&gt;
+  &lt;li&gt;执行application:didFinishLaunchingWithOptions的耗时&lt;/li&gt;
+  &lt;li&gt;rootViewController及其childViewController的加载、view及其subviews的加载&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;一般的App的主体UI架构是，&lt;code class=&quot;highlighter-rouge&quot;&gt;UITabbarViewController&lt;/code&gt; 作为 &lt;code class=&quot;highlighter-rouge&quot;&gt;keyWindow&lt;/code&gt;的根控制器，然后包含多个&lt;code class=&quot;highlighter-rouge&quot;&gt;ChildViewController&lt;/code&gt;作为每个tab的根控制器。然而在&lt;code class=&quot;highlighter-rouge&quot;&gt;didFinishLaunchingWithOptions&lt;/code&gt;代理方法中各控制器的初始化顺序是怎样的呢？&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;答案是：&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-[MQQTabBarController viewDidLoad]&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-[MQQTab1ViewController viewDidLoad]&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-[AppDelegate application:didFinishLaunchingWithOptions:]&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-[MQQTab2ViewController viewDidLoad]&lt;/code&gt; （点击了第二个tab之后加载）&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;-[MQQTab3ViewController viewDidLoad]&lt;/code&gt; （点击了第三个tab之后加载）&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;从上面的加载过程可以看出，在main()方法之后的启动中，只要是对页面的渲染，要减少这个阶段的耗时需要在&lt;code class=&quot;highlighter-rouge&quot;&gt;viewDidLoad&lt;/code&gt;方法中做优化，减少不必要的逻辑，视图尽量使用懒加载，使用异步方式加载网络数据。&lt;/p&gt;
+
+&lt;h3 id=&quot;启动时间优化&quot;&gt;启动时间优化&lt;/h3&gt;
+
+&lt;p&gt;苹果建议在400ms内完成pre-main 阶段的启动，App整体的启动时间不能超过20s，否则系统会被kill掉进程。&lt;/p&gt;
+
+&lt;p&gt;由于每个App的体量和类型不一样，对应启动过程中配置的逻辑处理复杂程度也是皆不相同，所有没有一个标准的时间来衡量启动时间是否达到最优。但是可以从用户体验上下功夫预加载占位视图，数据缓存等都可以营造出加载速度提升的感觉。&lt;/p&gt;
+
+&lt;p&gt;下面从实践的角度分析可优化的部分：&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;pre-main 阶段优化&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;移除不需要的动态库framework&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;移除不需要的类、未使用的变量、方法等&lt;/p&gt;
+
+    &lt;blockquote&gt;
+      &lt;p&gt;对应项目中大量的文件，可以使用工具快速扫描整个项目找出未使用的类、变量、或方法。这里推荐一个开源工具 Fui 能准确的完成此任务，不足之处在于它处理不了动态库或静态库中提供的类，和C++ 的类模板。&lt;/p&gt;
+
+      &lt;p&gt;Fui使用方法：&lt;/p&gt;
+
+      &lt;p&gt;在终端中cd到项目根目录，然后执行&lt;code class=&quot;highlighter-rouge&quot;&gt;fui find&lt;/code&gt;，就可以得到一个列表，可根据这个列表在Xcode中手动检查并删除无用代码。&lt;/p&gt;
+    &lt;/blockquote&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;合并功能类似的类和扩展（Category）&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;+load&lt;/code&gt;方法中做的事情可以使用&lt;code class=&quot;highlighter-rouge&quot;&gt;dispatch_once()&lt;/code&gt;来代替，因为&lt;code class=&quot;highlighter-rouge&quot;&gt;main()&lt;/code&gt;方法被调用之前就会加载&lt;code class=&quot;highlighter-rouge&quot;&gt;+load&lt;/code&gt;方法，会影响&lt;code class=&quot;highlighter-rouge&quot;&gt;pre-main&lt;/code&gt;阶段启动事件。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;压缩资源图片（对要求不高的图片可做压缩处理）&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;main 阶段优化&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;优化&lt;code class=&quot;highlighter-rouge&quot;&gt;application: didFinishLaunchingWithOptions:&lt;/code&gt;内部逻辑
+    &lt;ol&gt;
+      &lt;li&gt;各种业务请求配置更新，多个配置更新可合并为单个请求，部分业务的配置延后更新。&lt;/li&gt;
+      &lt;li&gt;对于新版本引导、广告闪屏逻辑，需要重构逻辑清晰&lt;/li&gt;
+      &lt;li&gt;数据迁移，对太旧的无用的逻辑可以删除，不需要立即处理的数据，改为后台加载&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;优化rootViewController加载：在启动过程中只加载tabbarVc，主Vc即可，而且主Vc中的&lt;code class=&quot;highlighter-rouge&quot;&gt;ViewDidLoad&lt;/code&gt;方法中也只加载需要立即显示出来的view，其他视图均使用懒加载，数据进行异步加载。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;参考资料&quot;&gt;参考资料&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;a href=&quot;https://mp.weixin.qq.com/s/Kf3EbDIUuf0aWVT-UCEmbA&quot;&gt;iOS App 启动性能优化–腾讯Bugly&lt;/a&gt;&lt;/p&gt;
+
+  &lt;p&gt;&lt;a href=&quot;http://lingyuncxb.com/2018/01/30/iOS%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96/&quot;&gt;iOS启动优化—凌云的博客&lt;/a&gt;&lt;/p&gt;
+
+  &lt;p&gt;[&lt;a href=&quot;http://yulingtianxia.com/blog/2016/10/30/Optimizing-App-Startup-Time/&quot;&gt;优化 App 的启动时间&lt;/a&gt;]&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+        <pubDate>Wed, 09 Jan 2019 06:15:49 +0800</pubDate>
+        <link>http://localhost:4000/2019/01/App%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/01/App%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/</guid>
+        
+        <category>iOS</category>
         
         
       </item>

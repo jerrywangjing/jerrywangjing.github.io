@@ -6,11 +6,11 @@ tags:
   - iOS
 ---
 
-#### 前言
+### 前言
 
 Method swizzling 用于改变Foundation 框架中一个已存在的方法（selector）的实现。常用于对系统方法实现的替换，可实现插入自定义代码逻辑，代码hook等功能。
 
-#### 实现原理
+### 实现原理
 
 这项技术使得在运行时通过改变 selector 在类的消息分发列表中的映射从而改变方法的掉用成为可能。
 
@@ -18,7 +18,7 @@ Method swizzling 用于改变Foundation 框架中一个已存在的方法（sele
 
  幸运的是，这里有另外一种可行的方式：从 **category** 实现 **method swizzling** 。
 
-#### 实现方式
+### 实现方式
 
 ```objc
 #import <objc/runtime.h>
@@ -72,17 +72,17 @@ Method swizzling 用于改变Foundation 框架中一个已存在的方法（sele
 
 ### 相关概念解释：
 
-#### +load  vs  +initialize
+**+load  vs  +initialize**
 
 **swizzling 应该只在 +load 中完成。** 在 Objective-C 的运行时中，每个类有两个方法都会自动调用。+load 是在一个类被初始装载时调用，+initialize 是在应用第一次调用该类的类方法或实例方法前调用的。两个方法都是可选的，并且只有在方法被实现的情况下才会被调用。
 
-#### dispatch_once
+**dispatch_once**
 
 **swizzling 应该只在 dispatch_once 中完成。**
 
 由于 swizzling 改变了全局的状态，所以我们需要确保每个预防措施在运行时都是可用的。原子操作就是这样一个用于确保代码只会被执行一次的预防措施，就算是在不同的线程中也能确保代码只执行一次。Grand Central Dispatch 的 dispatch_once 满足了所需要的需求，并且应该被当做使用 swizzling 的初始化单例方法的标准。
 
-#### Selectors, Methods, & Implementations
+**Selectors, Methods, & Implementations**
 
 在 Objective-C 的运行时中，selectors, methods, implementations 指代了不同概念，然而我们通常会说在消息发送过程中，这三个概念是可以相互转换的。 下面是苹果 [Objective-C Runtime Reference](https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ObjCRuntimeRef/Reference/reference.html#//apple_ref/c/func/method_getImplementation)中的描述：
 

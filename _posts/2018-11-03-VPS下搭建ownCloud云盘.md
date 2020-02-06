@@ -37,7 +37,7 @@ tags:
 
   **踩坑**：如果无法启动报错，可能是没有设置防火墙对http/https的访问权限，输入下面命令开启
 
-  ```shell
+  ```powershell
   sudo firewall-cmd --permanent --zone=public --add-service=http 
   sudo firewall-cmd --permanent --zone=public --add-service=https
   sudo firewall-cmd --reload
@@ -60,7 +60,7 @@ tags:
 
   输入`http://你的服务器地址/`测试是否安装成功，如果能访问就说明安装没问题，如下截图：
 
-  ![img0](https://user-gold-cdn.xitu.io/2017/12/13/1604ea6541926705?imageslim)
+  ![img0](/assets/images/posts/vps-ownCloud-img1.png)
 
   到这里就Apache 服务就安装完成了。
 
@@ -130,19 +130,19 @@ tags:
 
 ownCloud服务器软件包不存在于CentOS的默认存储库中。然而，ownCloud为发行版维护了一个专用的存储库。 首先，导入与他们释放钥匙rpm命令。 关键的授权包管理器yum信任库。
 
-```shell
+```powershell
 sudo rpm --import https://download.owncloud.org/download/repositories/stable/CentOS_7/repodata/repomd.xml.key
 ```
 
 接下来，使用curl命令下载ownCloud库文件：
 
-```shell
+```powershell
 sudo curl -L https://download.owncloud.org/download/repositories/stable/CentOS_7/ce:stable.repo -o /etc/yum.repos.d/ownCloud.repo
 ```
 
 添加新文件后，用clean命令使yum知道所做的更改：
 
-```shell
+```powershell
 sudo yum clean expire-cache
 
 // 如果提示类似下列命令，说明执行成功了
@@ -190,10 +190,11 @@ FLUSH PRIVILEGES;
 
 打开`https://你的服务器地址/owncloud`进入web管理页面 此时页面会提示你创建管理员账号，输入你想要的管理员账号和密码。在下方的数据库选项中选择MySQL／MariaDB，并且填入相应的账号和密码。此处填入的账号和密码即之前我们设置数据库时设置的账号和密码
 
-![img1](https://user-gold-cdn.xitu.io/2017/12/13/1604ea6541bffadc?imageslim)
+![img1](/assets/images/posts/vps-ownCloud-img2.png)
 
 点击Finish setup 完成安装。然后重新进入ownCloud web页面就可以进入到网盘。
 
-![img2](https://user-gold-cdn.xitu.io/2017/12/13/1604ea6541bb082a?imageslim)
+![img2](/assets/images/posts/vps-ownCloud-img3.png)
 
 到这里整个安装流程就都完成，可以开心的上传自己的文件啦。
+
