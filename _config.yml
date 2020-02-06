@@ -1,0 +1,51 @@
+# Basic
+title: Jerry's Blog
+SEOTitle: Jerry的博客 | Jerry's Blog
+subtitle: Less is more, Live and learning
+welcome_message: <a href="https://github.com/jerrywangjing" target="_blank">Welcome to visit my GitHub profile</a>
+description: Hello,I'm an iOS developer in China.
+creator: <a href="http://onev.cat">@onevcat</a>
+
+keyword: "Jerry, wangjing, Jerry's Blog, 博客, 个人博客, iOS, 移动互联网, 开发"
+
+url: "https://wjerry.com"
+
+permalink: /:year/:month/:title/
+
+# Format
+highlighter: rouge
+
+# supported colors: blue, green, purple, red, orange or slate. If you need clear, leave it empty.
+cover_color: slate
+
+# The blog button should not be removed.
+blog_button:
+    title: 博客
+    description: 访问博客
+
+# Navigation buttons in the front page.
+nav:
+    # - {title: Projects, description: My Projects, url: 'http://project.onevcat.com'}
+    # - {title: Another Button, description: A button, url: 'http://example.com'}
+
+# Pagination
+plugins: [jekyll-paginate]
+paginate: 20
+paginate_path: "page/:num/"
+
+# Comment
+comment:
+    disqus: Jerry
+    # duoshuo: 
+    
+# Social
+social:
+    # weibo: JerryWang
+    github: jerrywangjing
+    twitter: jerrywangjing
+    mail: wangjing268@163.com
+
+# Google Analytics
+ga:
+    id: UA-136960405-1
+    host: wjerry.com
