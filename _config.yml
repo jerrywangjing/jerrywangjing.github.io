@@ -1,8 +1,8 @@
 # Basic
 title: Jerry's Blog
-SEOTitle: Jerry的博客 | Jerry's Blog
+# SEOTitle: Jerry的博客 | Jerry's Blog
 subtitle: Less is more, Live and learning
-welcome_message: <a href="https://github.com/jerrywangjing" target="_blank">Welcome to visit my GitHub profile</a>
+welcome_message: <a href="https://github.com/jerrywangjing" target="_blank">Welcome to visit my GitHub</a>
 description: Hello,I'm an iOS developer in China.
 creator: <a href="http://onev.cat">@onevcat</a>
 
@@ -25,7 +25,7 @@ blog_button:
 
 # Navigation buttons in the front page.
 nav:
-    # - {title: Projects, description: My Projects, url: 'http://project.onevcat.com'}
+    - {title: 简历, description: 我的简历, url: '#'}
     # - {title: Another Button, description: A button, url: 'http://example.com'}
 
 # Pagination
@@ -35,7 +35,7 @@ paginate_path: "page/:num/"
 
 # Comment
 comment:
-    disqus: Jerry
+    disqus: Jerrywang
     # duoshuo: 
     
 # Social
