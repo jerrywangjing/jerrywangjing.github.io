@@ -5,8 +5,8 @@
     <description>Hello,I'm an iOS developer in China.</description>
     <link>http://localhost:4000/</link>
     <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sat, 23 May 2020 14:11:28 +0800</pubDate>
-    <lastBuildDate>Sat, 23 May 2020 14:11:28 +0800</lastBuildDate>
+    <pubDate>Sat, 23 May 2020 14:18:56 +0800</pubDate>
+    <lastBuildDate>Sat, 23 May 2020 14:18:56 +0800</lastBuildDate>
     <generator>Jekyll v3.8.5</generator>
     
       <item>
@@ -457,7 +457,7 @@
     
       <item>
         <title>LLVM架构与Clang</title>
-        <description>&lt;p&gt;&lt;img src=&quot;/assets/images/posts/llvm-logo-bg.png&quot; alt=&quot;head-logo&quot; /&gt;&lt;/p&gt;
+        <description>&lt;p&gt;&lt;img src=&quot;../assets/images/posts/llvm-logo-bg.png&quot; alt=&quot;head-logo&quot; /&gt;&lt;/p&gt;
 
 &lt;h3 id=&quot;llvm简介&quot;&gt;LLVM简介&lt;/h3&gt;
 
