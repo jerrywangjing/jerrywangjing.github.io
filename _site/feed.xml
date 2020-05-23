@@ -3,10 +3,10 @@
   <channel>
     <title>Jerry's Blog</title>
     <description>Hello,I'm an iOS developer in China.</description>
-    <link>https://wjerry.com/</link>
-    <atom:link href="https://wjerry.com/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Thu, 23 Apr 2020 11:28:38 +0800</pubDate>
-    <lastBuildDate>Thu, 23 Apr 2020 11:28:38 +0800</lastBuildDate>
+    <link>http://localhost:4000/</link>
+    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Sat, 23 May 2020 14:11:28 +0800</pubDate>
+    <lastBuildDate>Sat, 23 May 2020 14:11:28 +0800</lastBuildDate>
     <generator>Jekyll v3.8.5</generator>
     
       <item>
@@ -84,8 +84,8 @@
 &lt;p&gt;整个配置流程也很简单，从配置plist文件，到配置下载链接，最重要的还是要和后台配合。有此需求的小伙伴，赶快动手亲自尝试一下吧！&lt;/p&gt;
 </description>
         <pubDate>Thu, 01 Aug 2019 07:04:14 +0800</pubDate>
-        <link>https://wjerry.com/2019/08/%E8%87%AA%E5%BB%BAIPA%E5%88%86%E5%8F%91%E5%B9%B3%E5%8F%B0/</link>
-        <guid isPermaLink="true">https://wjerry.com/2019/08/%E8%87%AA%E5%BB%BAIPA%E5%88%86%E5%8F%91%E5%B9%B3%E5%8F%B0/</guid>
+        <link>http://localhost:4000/2019/08/%E8%87%AA%E5%BB%BAIPA%E5%88%86%E5%8F%91%E5%B9%B3%E5%8F%B0/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/08/%E8%87%AA%E5%BB%BAIPA%E5%88%86%E5%8F%91%E5%B9%B3%E5%8F%B0/</guid>
         
         <category>iOS</category>
         
@@ -447,8 +447,8 @@
 
 </description>
         <pubDate>Tue, 18 Jun 2019 06:28:03 +0800</pubDate>
-        <link>https://wjerry.com/2019/06/ReactiveCocoa-%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/</link>
-        <guid isPermaLink="true">https://wjerry.com/2019/06/ReactiveCocoa-%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/</guid>
+        <link>http://localhost:4000/2019/06/ReactiveCocoa-%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/06/ReactiveCocoa-%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/</guid>
         
         <category>ReactiveCocoa</category>
         
@@ -674,8 +674,8 @@ eof &lt;span class=&quot;s1&quot;&gt;''&lt;/span&gt;		&lt;span class=&quot;nv&qu
 &lt;/blockquote&gt;
 </description>
         <pubDate>Sun, 19 May 2019 20:57:21 +0800</pubDate>
-        <link>https://wjerry.com/2019/05/LLVM%E6%9E%B6%E6%9E%84%E4%B8%8EClang/</link>
-        <guid isPermaLink="true">https://wjerry.com/2019/05/LLVM%E6%9E%B6%E6%9E%84%E4%B8%8EClang/</guid>
+        <link>http://localhost:4000/2019/05/LLVM%E6%9E%B6%E6%9E%84%E4%B8%8EClang/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/05/LLVM%E6%9E%B6%E6%9E%84%E4%B8%8EClang/</guid>
         
         <category>LLVM</category>
         
@@ -832,8 +832,8 @@ Sorry I mean clang-rt, at Hikari.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/lib
 &lt;p&gt;希望看了这几篇文章的小伙伴，能对iOS代码混淆有个初步的学习和了解，最好能结合自身条件加以实践，想必会理解的更深刻。&lt;/p&gt;
 </description>
         <pubDate>Sun, 10 Mar 2019 19:33:09 +0800</pubDate>
-        <link>https://wjerry.com/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96(%E4%B8%89)/</link>
-        <guid isPermaLink="true">https://wjerry.com/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96(%E4%B8%89)/</guid>
+        <link>http://localhost:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96(%E4%B8%89)/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E7%BC%96%E8%AF%91%E4%BC%98%E5%8C%96(%E4%B8%89)/</guid>
         
         <category>iOS</category>
         
@@ -921,8 +921,8 @@ Sorry I mean clang-rt, at Hikari.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/lib
 &lt;p&gt;本篇介绍了，如何通过修改工程名称、类前缀、资源hash值等方式，达到修改二进制包的目的，为上架苹果App Store 做准备。有兴趣的小伙伴可以亲自尝试一下，想必可以给您带来一些帮助。&lt;/p&gt;
 </description>
         <pubDate>Tue, 05 Mar 2019 19:26:33 +0800</pubDate>
-        <link>https://wjerry.com/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E8%B5%84%E6%BA%90%E6%9B%BF%E6%8D%A2(%E4%BA%8C)/</link>
-        <guid isPermaLink="true">https://wjerry.com/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E8%B5%84%E6%BA%90%E6%9B%BF%E6%8D%A2(%E4%BA%8C)/</guid>
+        <link>http://localhost:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E8%B5%84%E6%BA%90%E6%9B%BF%E6%8D%A2(%E4%BA%8C)/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E8%B5%84%E6%BA%90%E6%9B%BF%E6%8D%A2(%E4%BA%8C)/</guid>
         
         <category>iOS</category>
         
@@ -1157,8 +1157,8 @@ sqlite3 &lt;span class=&quot;nv&quot;&gt;$SYMBOL_DB_FILE&lt;/span&gt; .dump
 &lt;/blockquote&gt;
 </description>
         <pubDate>Sun, 03 Mar 2019 06:23:00 +0800</pubDate>
-        <link>https://wjerry.com/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E6%96%B9%E6%B3%95%E5%90%8D%E6%9B%BF%E6%8D%A2(%E4%B8%80)/</link>
-        <guid isPermaLink="true">https://wjerry.com/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E6%96%B9%E6%B3%95%E5%90%8D%E6%9B%BF%E6%8D%A2(%E4%B8%80)/</guid>
+        <link>http://localhost:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E6%96%B9%E6%B3%95%E5%90%8D%E6%9B%BF%E6%8D%A2(%E4%B8%80)/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/03/iOS%E4%BB%A3%E7%A0%81%E6%B7%B7%E6%B7%86%E4%B9%8B%E6%96%B9%E6%B3%95%E5%90%8D%E6%9B%BF%E6%8D%A2(%E4%B8%80)/</guid>
         
         <category>iOS</category>
         
@@ -1269,8 +1269,8 @@ sqlite3 &lt;span class=&quot;nv&quot;&gt;$SYMBOL_DB_FILE&lt;/span&gt; .dump
 &lt;/blockquote&gt;
 </description>
         <pubDate>Sun, 03 Feb 2019 06:16:56 +0800</pubDate>
-        <link>https://wjerry.com/2019/02/iOS%E9%A1%B5%E9%9D%A2%E5%8D%A1%E9%A1%BF%E5%8F%8A%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</link>
-        <guid isPermaLink="true">https://wjerry.com/2019/02/iOS%E9%A1%B5%E9%9D%A2%E5%8D%A1%E9%A1%BF%E5%8F%8A%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</guid>
+        <link>http://localhost:4000/2019/02/iOS%E9%A1%B5%E9%9D%A2%E5%8D%A1%E9%A1%BF%E5%8F%8A%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/02/iOS%E9%A1%B5%E9%9D%A2%E5%8D%A1%E9%A1%BF%E5%8F%8A%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</guid>
         
         <category>iOS</category>
         
@@ -1470,8 +1470,8 @@ sqlite3 &lt;span class=&quot;nv&quot;&gt;$SYMBOL_DB_FILE&lt;/span&gt; .dump
 &lt;/blockquote&gt;
 </description>
         <pubDate>Thu, 31 Jan 2019 06:16:56 +0800</pubDate>
-        <link>https://wjerry.com/2019/01/iOS%E6%95%B0%E6%8D%AE%E5%9F%8B%E7%82%B9%E6%96%B9%E6%A1%88/</link>
-        <guid isPermaLink="true">https://wjerry.com/2019/01/iOS%E6%95%B0%E6%8D%AE%E5%9F%8B%E7%82%B9%E6%96%B9%E6%A1%88/</guid>
+        <link>http://localhost:4000/2019/01/iOS%E6%95%B0%E6%8D%AE%E5%9F%8B%E7%82%B9%E6%96%B9%E6%A1%88/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/01/iOS%E6%95%B0%E6%8D%AE%E5%9F%8B%E7%82%B9%E6%96%B9%E6%A1%88/</guid>
         
         <category>iOS</category>
         
@@ -1634,8 +1634,8 @@ sqlite3 &lt;span class=&quot;nv&quot;&gt;$SYMBOL_DB_FILE&lt;/span&gt; .dump
 
 </description>
         <pubDate>Thu, 17 Jan 2019 06:16:31 +0800</pubDate>
-        <link>https://wjerry.com/2019/01/App%E5%B8%B8%E8%A7%81%E5%B4%A9%E6%BA%83%E5%88%86%E6%9E%90/</link>
-        <guid isPermaLink="true">https://wjerry.com/2019/01/App%E5%B8%B8%E8%A7%81%E5%B4%A9%E6%BA%83%E5%88%86%E6%9E%90/</guid>
+        <link>http://localhost:4000/2019/01/App%E5%B8%B8%E8%A7%81%E5%B4%A9%E6%BA%83%E5%88%86%E6%9E%90/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/01/App%E5%B8%B8%E8%A7%81%E5%B4%A9%E6%BA%83%E5%88%86%E6%9E%90/</guid>
         
         <category>iOS</category>
         
@@ -1870,8 +1870,8 @@ sqlite3 &lt;span class=&quot;nv&quot;&gt;$SYMBOL_DB_FILE&lt;/span&gt; .dump
 &lt;/blockquote&gt;
 </description>
         <pubDate>Wed, 09 Jan 2019 06:15:49 +0800</pubDate>
-        <link>https://wjerry.com/2019/01/App%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/</link>
-        <guid isPermaLink="true">https://wjerry.com/2019/01/App%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/</guid>
+        <link>http://localhost:4000/2019/01/App%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/</link>
+        <guid isPermaLink="true">http://localhost:4000/2019/01/App%E5%90%AF%E5%8A%A8%E5%88%86%E6%9E%90%E4%B8%8E%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5/</guid>
         
         <category>iOS</category>
         
